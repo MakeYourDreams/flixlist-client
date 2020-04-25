@@ -29,8 +29,15 @@ class Content extends Component {
   }
 
   componentDidMount() {
-    const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
+    const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';
+    // For v4 endpoints (https://developers.themoviedb.org/4):
+    const v4ApiKey = 'YOUR_V4_API_KEY';
+    const userToken = 'AN_USER_ACCESS_TOKEN';
+    const accountId = 'AN_ACCOUNT_ID';
+    
     const v3Client = v3(v3ApiKey);
+    const v4Client = v4(v4ApiKey);
+
     v3Client.movie.popular()
     .then((data) => {
 
@@ -40,8 +47,6 @@ class Content extends Component {
         var d = new Date(v.release_date);
         d = d.toLocaleString('default', { month: 'short' })
         data.results[i].release_date = d + ", " + v.release_date[0] + v.release_date[1] + v.release_date[2] + v.release_date[3];
-        data.results[i].loaded = "fa fa-cog fa-spin fa-lg";
-        data.results[i].loadedfin = "d-none";
         this.setState({movieData: data.results});
       // console.log(props)
         axios({
@@ -53,7 +58,7 @@ class Content extends Component {
           "x-rapidapi-key": "1mAVi8jSwlmsh07ghuCUnNKdyw9ip15YyMJjsng8L9nsfQVPyn"
           },"params":{
           "page":"1",
-          "y":v.release_date.substr(0, 3),
+          "y":v.release_date[0] + v.release_date[1] + v.release_date[2] + v.release_date[3],
           "r":"json",
           "type":"movie",
           "s":data.results[i].title
@@ -83,18 +88,9 @@ class Content extends Component {
                 for (const [i, v] of this.state.movieData.entries()) {
                   if (response2.data.Title == this.state.movieData[i].title) {
                     var compareState = this.state.movieData
-                    compareState[i].IMDB = response2.data.Ratings[0].Value
-                    compareState[i].RT = response2.data.Ratings[1].Value
-                    compareState[i].loaded = ""
-                    compareState[i].loadedfin = "d-flex"
-                    this.setState({movieData: compareState});
-                  } else if (response2.data.Title.substr(0, 3)== this.state.movieData[i].title.substr(0, 3)) {
-                    var compareState = this.state.movieData
-                    compareState[i].IMDB = response2.data.Ratings[0].Value
-                    compareState[i].RT = response2.data.Ratings[1].Value
-                    compareState[i].loaded = ""
-                    compareState[i].loadedfin = "d-flex"
-                    this.setState({movieData: compareState});
+                    compareState[i].adult = response2.data.Ratings[0].Value
+                    // console.log(compareState)
+                  this.setState({movieData: compareState});
                   }
               //  this.setState({ ratingData: this.state.ratingData.concat(response2.data.Ratings[0].Value) });
               //  this.setState({ ratingData2: this.state.ratingData2.concat(response2.data.Ratings[1].Value) });
@@ -110,18 +106,8 @@ class Content extends Component {
           })
     }
 
-    // console.log("FINISHED")
-    // If loaded takes too long we stop the loading spinner
-    setTimeout(() => { 
-      for (const [i, v] of this.state.movieData.entries()) {
-        var compareState2 = this.state.movieData
-        if (this.state.movieData[i].IMDB == undefined) compareState2[i].IMDB = "~"
-        if (this.state.movieData[i].RT == undefined) compareState2[i].RT = "~"
-        compareState2[i].loaded = ""
-        compareState2[i].loadedfin = "d-flex"
-        this.setState({movieData: compareState2});
-        }
-    }, 5000);
+    console.log("FINISHED")
+      
       // console.log(data.results[2])
       // this.setState({ loaded: true });
       // res.render('./weekly/allContacts',{ popularMovies: data.results })
@@ -169,16 +155,20 @@ class Content extends Component {
           <img className="card-img-top" src={`https://image.tmdb.org/t/p/w500/${mov.poster_path}`} alt="Card image cap"></img> 
           <div className="card-body">
             <h5 className="card-title"><b>{mov.title}</b></h5>
-            <i className={mov.loaded}/>
+            <i className={this.state.loaded}/>
             
-            <div className={mov.loadedfin}>
+            <div className={this.state.loadedfin}>
               {/* <FontAwesomeIcon icon={faImdb} className="fa-lg"/>  */}
             <img src={IMDBlogo} alt="IMDB" style={{width: '26px'}}></img>
-            <span style={{marginRight: '10px'}}><b>{mov.IMDB}</b></span>
+            <span style={{marginRight: '10px'}}><b>{this.state.ratingData[i]}</b></span>
             <img src={tomato} alt="Rotten Tomatoes" style={{width: '26px'}}></img>
-            <span><b>{mov.RT}</b></span>
+            <span><b>{mov.adult}</b></span>
             </div>
             <span></span>
+            <div className={this.state.loadedfin}>
+              {/* <FontAwesomeIcon icon={faImdb} className="fa-lg"/>  */}
+
+            </div>
           </div >
           <ul className="list-group list-group-flush">
             <li className="list-group-item">{mov.release_date}</li>
