@@ -6,11 +6,13 @@ import PrivateRoute from "./components/PrivateRoute";
 import Loading from "./components/Loading";
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
-import Home from "./views/Home";
+import Content from "./components/Content";
 import Profile from "./views/Profile";
+import Weekly from "./views/Weekly";
+import Movie from "./views/Movie";
 import { useAuth0 } from "./react-auth0-spa";
 import history from "./utils/history";
-
+import {MovieContent} from './components/MovieContent';
 // styles
 import "./App.css";
 import "./style.css";
@@ -32,7 +34,10 @@ const App = () => {
         <NavBar />
         <Container className="flex-grow-1 mt-5">
           <Switch>
-            <Route path="/" exact component={Home} />
+            <Route path="/" exact component={Content} />
+            <Route path="/weekly" exact component={Weekly} />
+            <PrivateRoute path="/movie/:id" exact component={MovieContent} />
+            {/* <Route path='/movie/:id' render={(props) => <MovieProduct {...props}/>}/> */}
             <PrivateRoute path="/profile" component={Profile} />
           </Switch>
         </Container>

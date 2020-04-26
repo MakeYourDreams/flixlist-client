@@ -6,10 +6,6 @@ import '../../node_modules/@fortawesome/fontawesome-free/css/brands.css'
 import contentData from "../utils/contentData";
 import axios from 'axios';
 import { v3, v4 } from "@leonardocabeza/the-movie-db";
-import { NavLink as RouterNavLink } from "react-router-dom";
-
-
-
 
 import '../style.css'
 import IMDBlogo from "../assets/IMDBlogo.png";
@@ -17,7 +13,9 @@ import tomato from "../assets/tomato.png";
 import badTomato from "../assets/badTomato.png";
 import goodTomato from "../assets/goodTomato.png";
 
-class Content extends Component {
+
+
+export class MovieContent extends Component {
 
   
   constructor(props) {
@@ -34,23 +32,23 @@ class Content extends Component {
     this.codeNode = React.createRef();
   }
 
+  
   componentDidMount() {
-    
+    console.log(this.props)
     const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
     const v3Client = v3(v3ApiKey);
-    v3Client.movie.popular()
+    v3Client.movie.details(this.props.match.params.id)
     .then((data) => {
+     
+      this.setState({movieData: data});
 
-      this.setState({movieData: data.results});
-
-      for (const [i, v] of data.results.entries()) {
-        var d = new Date(v.release_date);
+        var d = new Date(data.release_date);
         d = d.toLocaleString('default', { month: 'short' })
-        data.results[i].release_date = d + ", " + v.release_date.substr(0, 4);
-        data.results[i].loaded = "fa fa-spinner fa-spin fa-lg";
-        data.results[i].loadedfin = "d-none";
-        this.setState({movieData: data.results});
-      // console.log(props)
+        data.release_date = d + ", " + data.release_date.substr(0, 4);
+        data.loaded = "fa fa-spinner fa-spin fa-lg";
+        data.loadedfin = "d-none";
+        this.setState({movieData: data});
+        console.log(this.state)
         axios({
           "method":"GET",
           "url":"https://movie-database-imdb-alternative.p.rapidapi.com/",
@@ -60,10 +58,10 @@ class Content extends Component {
           "x-rapidapi-key": "1mAVi8jSwlmsh07ghuCUnNKdyw9ip15YyMJjsng8L9nsfQVPyn"
           },"params":{
           "page":"1",
-          "y":v.release_date.substr(0, 3),
+          "y":data.release_date.substr(0, 3),
           "r":"json",
           "type":"movie",
-          "s":data.results[i].title
+          "s":data.title
           }
           })
           .then((response)=>{
@@ -80,34 +78,30 @@ class Content extends Component {
                 }
               })
               .then((response2) =>{
-                console.log(response2.data)
+                // console.log(response2.data)
                 this.setState({loaded: ""});
                 this.setState({loadedfin: "d-flex"});
                 // if (response2.data.Ratings.length == 0){
                 // console.log("grr", response2)
                 // this.setState({ ratingData: this.state.ratingData.concat('-') });
                 // }
-                for (const [i, v] of this.state.movieData.entries()) {
-                  if (response2.data.Title == this.state.movieData[i].title) {
+                  if (response2.data.Title == this.state.movieData.title) {
                     var compareState = this.state.movieData
-                    compareState[i].IMDB = response2.data.Ratings[0].Value
-                    compareState[i].RT = response2.data.Ratings[1].Value
-                    compareState[i].RT.substr(0, 2) >= 60 ? compareState[i].RTimg = tomato : compareState[i].RTimg = badTomato;
-                    compareState[i].loaded = ""
-                    compareState[i].loadedfin = "d-flex"
+                    compareState.IMDB = response2.data.Ratings[0].Value
+                    compareState.RT = response2.data.Ratings[1].Value
+                    compareState.RT.substr(0, 2) >= 60 ? compareState.RTimg = tomato : compareState.RTimg = badTomato;
+                    compareState.loaded = ""
+                    compareState.loadedfin = "d-flex"
                     this.setState({movieData: compareState});
-                  } else if (response2.data.Title.substr(0, 3)== this.state.movieData[i].title.substr(0, 3)) {
+                  } else if (response2.data.Title.substr(0, 3)== this.state.movieData.title.substr(0, 3)) {
                     var compareState = this.state.movieData
-                    compareState[i].IMDB = response2.data.Ratings[0].Value
-                    compareState[i].RT = response2.data.Ratings[1].Value
-                    compareState[i].RT.substr(0, 2) >= 60 ? compareState[i].RTimg = tomato : compareState[i].RTimg = badTomato;
-                    compareState[i].loaded = ""
-                    compareState[i].loadedfin = "d-flex"
+                    compareState.IMDB = response2.data.Ratings[0].Value
+                    compareState.RT = response2.data.Ratings[1].Value
+                    compareState.RT.substr(0, 2) >= 60 ? compareState.RTimg = tomato : compareState.RTimg = badTomato;
+                    compareState.loaded = ""
+                    compareState.loadedfin = "d-flex"
                     this.setState({movieData: compareState});
                   }
-              //  this.setState({ ratingData: this.state.ratingData.concat(response2.data.Ratings[0].Value) });
-              //  this.setState({ ratingData2: this.state.ratingData2.concat(response2.data.Ratings[1].Value) });
-                }
                 console.log(this.state)
               })
               .catch((error)=>{
@@ -117,22 +111,20 @@ class Content extends Component {
           .catch((error)=>{
             console.log(error)
           })
-    }
+
 
     // console.log("FINISHED")
     // If loading takes too long we stop the loading spinner
     setTimeout(() => { 
-      for (const [i, v] of this.state.movieData.entries()) {
         var compareState2 = this.state.movieData
-        if (this.state.movieData[i].IMDB == undefined) compareState2[i].IMDB = "~";
-        if (this.state.movieData[i].RT == undefined) {
-          compareState2[i].RT = "~"
-          compareState2[i].RTimg = tomato;
+        if (this.state.movieData.IMDB == undefined) compareState2.IMDB = "~";
+        if (this.state.movieData.RT == undefined) {
+          compareState2.RT = "~"
+          compareState2.RTimg = tomato;
         }
-        compareState2[i].loaded = ""
-        compareState2[i].loadedfin = "d-flex"
+        compareState2.loaded = ""
+        compareState2.loadedfin = "d-flex"
         this.setState({movieData: compareState2});
-        }
     }, 4200);
       // console.log(data.results[2])
       // this.setState({ loaded: true });
@@ -178,38 +170,33 @@ class Content extends Component {
     // }
     
 // console.log(this.state.ratingData)
-
-    return (
-      <div className="next-steps my-5">
-                <h2 className="my-5 text-center">Top movies of the week</h2>
-        <Row className="d-flex justify-content-between">
-          {/* {console.log("wow", this.state.movieData[1])} */}
-          
-          {this.state.movieData.map((mov, i) => (
-            
-          <div className="card" style={cardStyle}>
-          <RouterNavLink to={`/movie/${mov.id}`} exact className="hvr-float">
-          <img className="card-img-top" src={`https://image.tmdb.org/t/p/w500/${mov.poster_path}`} alt="Card image cap" style={{borderRadius: '6px'}}></img>
-          
-          <div className="card-body" style={{marginLeft: '-10px'}}>
-          <i className={mov.loaded} style={{color: 'gray'}}/>
-            <div className={mov.loadedfin}>
-              {/* <FontAwesomeIcon icon={faImdb} className="fa-lg"/>  */}
-            <img src={IMDBlogo} alt="IMDB" style={ratingStyle}></img>
-            <span style={{marginRight: '10px'}}><b>{mov.IMDB}</b></span>
-            <img src={mov.RTimg} alt="Rotten Tomatoes" style={ratingStyle}></img>
-            <span><b>{mov.RT}</b></span>
-            </div>
-            <h5 className="card-title" style={titleStyle}><b>{mov.title}</b></h5>
-            <span>{mov.release_date}</span>
-          </div >
-          </RouterNavLink>
-          </div>
-          ))}
-        </Row>
+const mov = this.state.movieData
+return (
+  <div className="">
+            <h2 className="">{mov.title}</h2>
+    <Row className="d-flex justify-content-between">
+      {/* {console.log("wow", this.state.movieData[1])} */}
+      
+      <div className="card" style={cardStyle}>
+      <img className="card-img-top" src={`https://image.tmdb.org/t/p/w500/${mov.poster_path}`} alt="Card image cap" style={{borderRadius: '6px'}}></img> 
+      <div className="card-body" style={{marginLeft: '-10px'}}>
+      <i className={mov.loaded} style={{color: 'gray'}}/>
+        <div className={mov.loadedfin}>
+          {/* <FontAwesomeIcon icon={faImdb} className="fa-lg"/>  */}
+        <img src={IMDBlogo} alt="IMDB" style={ratingStyle}></img>
+        <span style={{marginRight: '10px'}}><b>{mov.IMDB}</b></span>
+        <img src={mov.RTimg} alt="Rotten Tomatoes" style={ratingStyle}></img>
+        <span><b>{mov.RT}</b></span>
+        </div>
+        <h5 className="card-title" style={titleStyle}><b>{mov.title}</b></h5>
+        <span>{mov.release_date}</span>
+      </div >
+       
       </div>
-    );
+    </Row>
+  </div>
+);
   }
 }
 
-export default Content;
+export default MovieContent;
