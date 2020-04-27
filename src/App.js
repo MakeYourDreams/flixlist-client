@@ -6,7 +6,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import Loading from "./components/Loading";
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
-import Content from "./components/Content";
+import Home from "./views/Home";
 import Profile from "./views/Profile";
 import Weekly from "./views/Weekly";
 import Movie from "./views/Movie";
@@ -34,7 +34,7 @@ const App = () => {
         <NavBar />
         <Container className="flex-grow-1 mt-5">
           <Switch>
-            <Route path="/" exact component={Content} />
+            <Route path="/" exact component={Home} />
             <Route path="/weekly" exact component={Weekly} />
             <PrivateRoute path="/movie/:id" exact component={MovieContent} />
             {/* <Route path='/movie/:id' render={(props) => <MovieProduct {...props}/>}/> */}

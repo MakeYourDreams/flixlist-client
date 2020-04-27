@@ -12,11 +12,11 @@ import IMDBlogo from "../assets/IMDBlogo.png";
 import tomato from "../assets/tomato.png";
 import badTomato from "../assets/badTomato.png";
 import goodTomato from "../assets/goodTomato.png";
-
+import { Auth0Context } from "../react-auth0-spa";
 
 
 export class MovieContent extends Component {
-
+  static contextType = Auth0Context
   
   constructor(props) {
     super(props);
@@ -34,12 +34,13 @@ export class MovieContent extends Component {
 
   
   componentDidMount() {
+    console.log(this.context.user)
     console.log(this.props)
     const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
     const v3Client = v3(v3ApiKey);
     v3Client.movie.details(this.props.match.params.id)
     .then((data) => {
-     
+      // console.log(data)
       this.setState({movieData: data});
 
         var d = new Date(data.release_date);
@@ -48,7 +49,7 @@ export class MovieContent extends Component {
         data.loaded = "fa fa-spinner fa-spin fa-lg";
         data.loadedfin = "d-none";
         this.setState({movieData: data});
-        console.log(this.state)
+        // console.log(this.state)
         axios({
           "method":"GET",
           "url":"https://movie-database-imdb-alternative.p.rapidapi.com/",
@@ -102,7 +103,7 @@ export class MovieContent extends Component {
                     compareState.loadedfin = "d-flex"
                     this.setState({movieData: compareState});
                   }
-                console.log(this.state)
+                
               })
               .catch((error)=>{
                 console.log(error)
@@ -129,6 +130,17 @@ export class MovieContent extends Component {
       // console.log(data.results[2])
       // this.setState({ loaded: true });
       // res.render('./weekly/allContacts',{ popularMovies: data.results })
+    })
+    .catch((error) => {
+      console.log('error: ', error);
+    });
+    v3Client.movie.videos(this.props.match.params.id)
+    .then((trailerData) => {
+      var compareState = this.state.movieData
+      compareState.youTube = trailerData.results[0].key
+      this.setState({movieData: compareState});
+      console.log(this.state)
+      console.log(trailerData)
     })
     .catch((error) => {
       console.log('error: ', error);
@@ -172,6 +184,7 @@ export class MovieContent extends Component {
 // console.log(this.state.ratingData)
 const mov = this.state.movieData
 return (
+
   <div className="">
             <h2 className="">{mov.title}</h2>
     <Row className="d-flex justify-content-between">
@@ -193,7 +206,14 @@ return (
       </div >
        
       </div>
+
     </Row>
+    <hr></hr>
+    <Col className="d-flex justify-content-between">
+    <iframe width="420" height="345" src={`https://www.youtube.com/embed/${mov.youTube}`}>
+</iframe>
+</Col>
+
   </div>
 );
   }
