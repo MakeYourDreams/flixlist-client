@@ -36,6 +36,12 @@ body {
   /* a img:hover{ position: relative; 
     top: -5px;} */
     
+    .nav-link-movie {
+      color: black !important; 
+      text-decoration: none !important;
+      vertical-align: middle;
+    }
+
     .hvr-float {
       color: black !important; 
       text-decoration: none !important;
@@ -54,6 +60,27 @@ body {
     .hvr-float:hover, .hvr-float:focus, .hvr-float:active {
       -webkit-transform: translateY(-8px);
       transform: translateY(-8px);
+    }
+
+    .favStyleActive {
+      color: red;
+    }
+
+    .favStyleNotActive {
+      color: rgb(97, 96, 100);
+    }
+
+    h5:hover {
+      display: inline-block !important;
+      -webkit-line-clamp: 4 !important;
+      -webkit-box-orient: vertical !important;
+      overflow: visible !important;
+      white-space: normal !important; 
+      text-overflow: initial !important;
+    }
+
+    .setGray {
+      color: rgb(100, 100, 100);
     }
 
 

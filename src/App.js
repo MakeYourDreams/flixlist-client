@@ -36,9 +36,10 @@ const App = () => {
           <Switch>
             <Route path="/" exact component={Home} />
             <Route path="/weekly" exact component={Weekly} />
-            <PrivateRoute path="/movie/:id" exact component={MovieContent} />
+            <Route path="/movie/:id" exact component={MovieContent} />
             {/* <Route path='/movie/:id' render={(props) => <MovieProduct {...props}/>}/> */}
             <PrivateRoute path="/profile" component={Profile} />
+            <PrivateRoute path="/login" component={Home} />
           </Switch>
         </Container>
         <Footer />

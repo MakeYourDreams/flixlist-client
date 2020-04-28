@@ -26,7 +26,8 @@ export class MovieContent extends Component {
       loadedfin :"d-none",
       movieData: [],
       ratingData: [],
-      ratingData2: []
+      ratingData2: [],
+      user: ""
     };
 
     this.codeNode = React.createRef();
@@ -34,8 +35,10 @@ export class MovieContent extends Component {
 
   
   componentDidMount() {
-    console.log(this.context.user)
+    console.log(this.context.user.email)
     console.log(this.props)
+    this.setState({user: this.context.user.email});
+    console.log(this.state)
     const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
     const v3Client = v3(v3ApiKey);
     v3Client.movie.details(this.props.match.params.id)
