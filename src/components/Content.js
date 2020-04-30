@@ -9,7 +9,7 @@ import { v3, v4 } from "@leonardocabeza/the-movie-db";
 import { NavLink as RouterNavLink } from "react-router-dom";
 import { Auth0Context } from "../react-auth0-spa";
 
-
+// make filter by  setting state only of what  matches filter. then continue until >= 20 results.
 
 import '../style.css'
 import IMDBlogo from "../assets/IMDBlogo.png";
@@ -68,10 +68,10 @@ class Content extends Component {
       // Checks that the page has scrolled to the bottom
       if (
         window.innerHeight + document.documentElement.scrollTop
-        > (scrollHeight - (50 + (pageNumber * (window.innerHeight / 100))))
+        > (scrollHeight - (300 + (pageNumber * (window.innerHeight / 100))))
       ) {
         this.setState({pageNumber: pageNumber + 1});
-        this.getMovies()
+        this.getMovies(0)
       }
     }, 100);
   }
@@ -81,13 +81,14 @@ class Content extends Component {
  handleClick (movID, e) {
 
   console.log("grr", e.target)
-  e.target.classList = ("fa fa-spinner fa-pulse setGray")
+  e.target.classList = ("fa fa-spinner fa-spin setGray")
   if (this.context.user !== undefined){
   axios.get('http://localhost:9000/users/favorites/' + this.context.user.email + '&' + movID)
     .then(response => {
       var compareState = this.state.userFavorites
       compareState.push(movID)
       this.setState({userFavorites: compareState});
+      setTimeout(() => { 
       for (const [i, v] of this.state.movieData.entries()) {
         
         if (movID == this.state.movieData[i].id) {
@@ -99,6 +100,7 @@ class Content extends Component {
         }
         
         }
+      }, 500)
         console.log(response)
         console.log(this.state)
     })
@@ -108,7 +110,7 @@ class Content extends Component {
   }
 
 
-  getMovies() {
+  getMovies(numFound) {
     // this.setState({user: this.context.user.email});
     this.setState({isLoading: true})
     console.log(this.state)
@@ -119,7 +121,6 @@ class Content extends Component {
       this.setState({userFavorites: userFavorities.data});
     })
   }
-
     // console.log("favvs2", this.state.userFavorites)
     const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
     const v3Client = v3(v3ApiKey);
@@ -127,6 +128,17 @@ class Content extends Component {
       page: this.state.pageNumber
     })
     .then((data) => {
+
+      //FILTER RESULTS
+      var newData = data.results //if no filter
+      var newData = data.results.filter(data => {
+        if (data.release_date !== undefined) return data.release_date.substr(0, 4) == 2020;
+        }
+        );
+      data.results = newData
+
+
+
       if (this.state.movieData == null) {
       this.setState({movieData: data.results});
       } else {
@@ -136,20 +148,49 @@ class Content extends Component {
         this.setState({movieData: data.results});
         console.log("NEXT PAGE", data.results)
       }
+      
+      if (this.state.pageNumber >= 200) this.setState({hasMore: false});
+      numFound = numFound + newData.length
+      if ((numFound < 20) && (this.state.pageNumber < 200)){
 
-
-
+        
       for (const [i, v] of data.results.entries()) {
         // console.log("PAGE", this.state.pageNumber, v)
-        if (i < ((this.state.pageNumber * 20) - 20)) continue
+        if (i < ((data.results.length) - numFound)) continue
         if (v.release_date === undefined) continue
+        if (!isNaN(v.release_date.substr(0, 4))) {
         var d = new Date(v.release_date);
         d = d.toLocaleString('default', { month: 'short' })
         data.results[i].release_date = d + ", " + v.release_date.substr(0, 4);
+        }
         data.results[i].loaded = "fa fa-spinner fa-spin fa-lg";
         data.results[i].loadedfin = "d-none";
         data.results[i].fav = "far fa-heart fa-2x favStyleNotActive";
+
         this.setState({movieData: data.results});
+      }
+
+      this.setState({pageNumber: this.state.pageNumber + 1});
+      this.getMovies(numFound)
+      return
+      }
+      console.log("NEWDATA", numFound)
+
+      for (const [i, v] of data.results.entries()) {
+        // console.log("PAGE", this.state.pageNumber, v)
+        if (i < ((data.results.length) - numFound)) continue
+        if (v.release_date === undefined) continue
+        if (!isNaN(v.release_date.substr(0, 4))) {
+        var d = new Date(v.release_date);
+        d = d.toLocaleString('default', { month: 'short' })
+        data.results[i].release_date = d + ", " + v.release_date.substr(0, 4);
+        }
+        data.results[i].loaded = "fa fa-spinner fa-spin fa-lg";
+        data.results[i].loadedfin = "d-none";
+        data.results[i].fav = "far fa-heart fa-2x favStyleNotActive";
+
+        this.setState({movieData: data.results});
+
       // console.log(props)
         axios({
           "method":"GET",
@@ -183,6 +224,7 @@ class Content extends Component {
                 }
               })
               .then((response2) =>{
+                 
                 // console.log(response2.data)
                 this.setState({loaded: ""});
                 this.setState({loadedfin: "d-flex"});
@@ -191,7 +233,7 @@ class Content extends Component {
                 // this.setState({ ratingData: this.state.ratingData.concat('-') });
                 // }
                 for (const [i, v] of this.state.movieData.entries()) {
-                  if (i < ((this.state.pageNumber * 20) - 20)) continue
+                  if (i < ((data.results.length) - numFound)) continue
                   if (v.release_date === undefined) continue
                   if (response2.data.Title == this.state.movieData[i].title) {
                     var compareState = this.state.movieData
@@ -203,7 +245,8 @@ class Content extends Component {
                     compareState[i].loadedfin = "d-flex"
                     this.setState({movieData: compareState});
                     break
-                  } else if (response2.data.Title.substr(0, 3)== this.state.movieData[i].title.substr(0, 3)) {
+                  } 
+                  else if (response2.data.Title.substr(0, 9) == this.state.movieData[i].title.substr(0, 9)) {
                     var compareState = this.state.movieData
                     compareState[i].IMDB = response2.data.Ratings[0].Value
                     compareState[i].RT = response2.data.Ratings[1].Value
@@ -234,25 +277,31 @@ class Content extends Component {
       var scrollHeight = document.getElementsByTagName("body")[0].scrollHeight
       this.setState({scrollHeight: scrollHeight});
       for (const [i, v] of this.state.movieData.entries()) {
-        if (i < ((this.state.pageNumber * 20) - 20)) continue
+        if (i < ((data.results.length) - numFound)) continue
         var compareState2 = this.state.movieData
-        if (this.state.movieData[i].IMDB == undefined) compareState2[i].IMDB = "N/A";
+        compareState2[i].loaded = ""
+        compareState2[i].loadedfin = "d-flex"
+        if (this.state.movieData[i].IMDB == undefined) {
+          compareState2[i].IMDB = "N/A";
+          compareState2[i].loadedfin = "d-flex ratingTransparent"
+        }
         if (this.state.movieData[i].RT == undefined) {
           compareState2[i].RT = "N/A"
           compareState2[i].RTimg = tomato;
         }
-        compareState2[i].loaded = ""
-        compareState2[i].loadedfin = "d-flex"
+        if ((this.state.movieData[i].IMDB !== undefined) && (this.state.movieData[i].RT == undefined)){
+          compareState2[i].loadedfin = "d-flex"
+        }
         this.setState({movieData: compareState2});
         }
         this.setState({isLoading: false});
         console.log("TIMEOUT FINISHED", this.state)
-    }, 4200);
+    }, 2000);
 
     //Set favorites
     setTimeout(() => { 
         for (const [i, v] of this.state.movieData.entries()) {
-          if (i < ((this.state.pageNumber * 20) - 20)) continue
+          if (i < ((data.results.length) - numFound)) continue
           
           if (this.state.userFavorites.includes(`${this.state.movieData[i].id}`)) {
             var compareState2 = this.state.movieData
@@ -262,10 +311,10 @@ class Content extends Component {
 
           }
           console.log(this.state)
-    }, 1000);
-      // console.log(data.results[2])
-      // this.setState({ loaded: true });
-      // res.render('./weekly/allContacts',{ popularMovies: data.results })
+    }, 400);
+
+
+      
     })
     .catch((error) => {
       console.log('error: ', error);
@@ -273,7 +322,7 @@ class Content extends Component {
   }
 
   componentDidMount () {
-    this.getMovies()
+    this.getMovies(0)
   }
 
   
@@ -324,6 +373,13 @@ class Content extends Component {
     //   return null;
     // }
 
+    const {
+      error,
+      hasMore,
+      isLoading,
+      pageNumber
+    } = this.state;
+
     const theHTML = this.state.movieData.map((mov, i) => (
       <div className="card hvr-float" style={cardStyle}>
        
@@ -335,10 +391,18 @@ class Content extends Component {
       <i className={mov.loaded} style={{color: 'gray'}}/>
         <div className={mov.loadedfin}>
           {/* <FontAwesomeIcon icon={faImdb} className="fa-lg"/>  */}
+        {mov.RTimg && 
         <img src={IMDBlogo} alt="IMDB" style={ratingStyle}></img>
+        }
+        {mov.RTimg && 
         <span style={{marginRight: '10px'}}><b>{mov.IMDB}</b></span>
+        }
+        {mov.RTimg && 
         <img src={mov.RTimg} alt="Rotten Tomatoes" style={ratingStyle}></img>
+        }
+        {mov.RTimg && 
         <span><b>{mov.RT}</b></span>
+        }
         </div>
         <h5 className="card-title" style={titleStyle}>{mov.title}</h5>
         <span>{mov.release_date} </span>
@@ -360,21 +424,20 @@ class Content extends Component {
     
 // console.log(this.state.ratingData)
 
-const {
-  error,
-  hasMore,
-  isLoading,
-} = this.state;
 
     return (
       
       <div className="next-steps my-5">
-                <h2 className="my-5 text-center">Top movies of the week</h2>
+                <h2 className="my-5 text-center">Trending movies</h2>
         <Row className="d-flex">
           {/* {console.log("wow", this.state.movieData[1])} */}
           {theHTML}
+          
           {isLoading &&
-          <div>Loading...<i className="fa fa-spinner fa-spin fa-4x"/></div>
+          <span style={{marginTop: '10px'}}>Loading...<i className="fa fa-spinner fa-spin fa-3x"/></span>
+        }
+        {!isLoading &&
+        <span>Page {pageNumber} </span>
         }
         {!hasMore &&
           <div>You did it! You reached the end!</div>
