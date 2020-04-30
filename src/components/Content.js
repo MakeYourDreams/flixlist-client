@@ -148,6 +148,8 @@ class Content extends Component {
         this.setState({movieData: data.results});
         console.log("NEXT PAGE", data.results)
       }
+
+      
       
       if (this.state.pageNumber >= 200) this.setState({hasMore: false});
       numFound = numFound + newData.length
@@ -163,9 +165,11 @@ class Content extends Component {
         d = d.toLocaleString('default', { month: 'short' })
         data.results[i].release_date = d + ", " + v.release_date.substr(0, 4);
         }
+        if (!data.results[i].IMDB) {
         data.results[i].loaded = "fa fa-spinner fa-spin fa-lg";
         data.results[i].loadedfin = "d-none";
         data.results[i].fav = "far fa-heart fa-2x favStyleNotActive";
+        }
 
         this.setState({movieData: data.results});
       }
@@ -185,9 +189,11 @@ class Content extends Component {
         d = d.toLocaleString('default', { month: 'short' })
         data.results[i].release_date = d + ", " + v.release_date.substr(0, 4);
         }
+        if (!data.results[i].IMDB) {
         data.results[i].loaded = "fa fa-spinner fa-spin fa-lg";
         data.results[i].loadedfin = "d-none";
         data.results[i].fav = "far fa-heart fa-2x favStyleNotActive";
+        }
 
         this.setState({movieData: data.results});
 
@@ -292,9 +298,33 @@ class Content extends Component {
         if ((this.state.movieData[i].IMDB !== undefined) && (this.state.movieData[i].RT == undefined)){
           compareState2[i].loadedfin = "d-flex"
         }
+        // if (compareState2[i].IMDB !== "5.7/10") {
+        //   compareState2.splice(i, 1)
+        //   i = -1
+        // }
         this.setState({movieData: compareState2});
         }
+
+        compareState2 = this.state.movieData.filter(data => {
+          if (data.IMDB !== undefined) return data.IMDB.substr(0, 3) >= 5.7
+          }
+          )
+
+          if (this.state.pageNumber >= 200) this.setState({hasMore: false});
+          numFound = compareState2.length
+          console.log("FOUND", numFound)
+          if ((compareState2.length < 20) && (this.state.pageNumber < 200)){
+            this.setState({movieData: compareState2});
+            this.setState({pageNumber: this.state.pageNumber + 1});
+            this.getMovies(numFound)
+            return
+          }
+
+          
+          this.setState({movieData: compareState2});
         this.setState({isLoading: false});
+        var scrollHeight = document.getElementsByTagName("body")[0].scrollHeight
+        this.setState({scrollHeight: scrollHeight});
         console.log("TIMEOUT FINISHED", this.state)
     }, 2000);
 
