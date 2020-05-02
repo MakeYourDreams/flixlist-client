@@ -68,7 +68,7 @@ class Content extends Component {
       // Checks that the page has scrolled to the bottom
       if (
         window.innerHeight + document.documentElement.scrollTop
-        > (scrollHeight - (300 + (pageNumber * (window.innerHeight / 100))))
+        > (scrollHeight - (280 + (pageNumber * (window.innerHeight / 100))))
       ) {
         this.setState({pageNumber: pageNumber + 1});
         this.getMovies(0)
@@ -132,7 +132,7 @@ class Content extends Component {
       //FILTER RESULTS
       var newData = data.results //if no filter
       var newData = data.results.filter(data => {
-        if (data.release_date !== undefined) return data.release_date.substr(0, 4) == 2020;
+        if (data.release_date !== undefined) return data.release_date.substr(0, 4) >= 2015;
         }
         );
       data.results = newData
@@ -306,7 +306,7 @@ class Content extends Component {
         }
 
         compareState2 = this.state.movieData.filter(data => {
-          if (data.IMDB !== undefined) return data.IMDB.substr(0, 3) >= 5.7
+          if (data.IMDB !== undefined) return data.IMDB.substr(0, 3) >= 6.9
           }
           )
 
@@ -360,7 +360,7 @@ class Content extends Component {
 
     const cardStyle = {
       margin: '3px',
-      // padding: '4px',
+      padding: '3px',
       width: '16%',
       // backgroundColor: 'rgba(230, 230, 255, 0.2)',
       border: '0',
@@ -414,7 +414,7 @@ class Content extends Component {
       <div className="card hvr-float" style={cardStyle}>
        
       <RouterNavLink to={`/movie/${mov.id}`} exact className="nav-link-movie">
-      <img className="card-img-top" src={`https://image.tmdb.org/t/p/w500/${mov.poster_path}`} alt="Card image cap" style={{borderRadius: '6px'}}></img>
+      <img className="card-img-top hideme" src={`https://image.tmdb.org/t/p/w500/${mov.poster_path}`} alt="Card image cap" style={{borderRadius: '6px'}}></img>
       </RouterNavLink>
       <div className="card-body" style={{marginLeft: '-10px'}}>
       <RouterNavLink to={`/movie/${mov.id}`} exact className="nav-link-movie">
@@ -440,6 +440,7 @@ class Content extends Component {
         {/* <RouterNavLink to={`http://localhost:9000/users/favorites/${this.state.user}&${mov.id}`} exact className="hvr-float">
         <i className="fa fa-heart fa-3x" style={{color: 'yellow'}}/>
         </RouterNavLink> */}
+        {/* {mov.IMDB !== undefined && mov.IMDB.substr(0, 3) >= 6.9 &&  */}
         <i className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
       </div >
       
@@ -457,8 +458,8 @@ class Content extends Component {
 
     return (
       
-      <div className="next-steps my-5">
-                <h2 className="my-5 text-center">Trending movies</h2>
+      <div className="next-steps">
+        <h5 className="pb-3 text-left font-weight-bold flex-row">Trending Movies</h5>
         <Row className="d-flex">
           {/* {console.log("wow", this.state.movieData[1])} */}
           {theHTML}

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { NavLink as RouterNavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import popcorn from "../assets/popcorn.png";
 
 import {
   Collapse,
@@ -30,11 +31,20 @@ const NavBar = () => {
       returnTo: window.location.origin
     });
 
+    const logoPopcorn = {
+      backgroundImage: 'url(' + popcorn + ')',
+      width: '2.5rem',
+      height: '2.75rem',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'cover',
+  }
+
+
   return (
     <div className="nav-container">
-      <Navbar color="light" light expand="md">
+      <Navbar className="navStyle" expand="md">
         <Container>
-          <NavbarBrand className="logo" />
+          <NavbarBrand className="mb-4 mr-0" style={logoPopcorn} />
           <NavbarToggler onClick={toggle} />
           <Collapse isOpen={isOpen} navbar>
             <Nav className="mr-auto" navbar>
@@ -43,34 +53,54 @@ const NavBar = () => {
                   tag={RouterNavLink}
                   to="/"
                   exact
-                  activeClassName="router-link-exact-active"
+                  activeClassName=""
+                  className="text-white font-weight-bold mb-3"
                 >
-                  Home
+                  Flixlist
                 </NavLink>
               </NavItem>
             </Nav>
             <Nav className="d-none d-md-block" navbar>
+                <NavItem>
+                <NavLink
+                  tag={RouterNavLink}
+                  to="/favorites"
+                  exact
+                  activeClassName="router-link-exact-active-new"
+                  className="text-white mb-3 font-weight-bold"
+                  style={{fontSize: '14px'}}
+                >
+                  Favorites
+                </NavLink>
+                </NavItem>
+              </Nav>
+              
+            <Nav className="d-none d-md-block" navbar>
               {!isAuthenticated && (
                 <NavItem>
-                  <Button
+                  <a href="" onClick={() => loginWithRedirect({})}><div className="container justify-content-md-center mb-4"><i className="fa fa-user fa-lg mb-4" style={{color: 'white'}}/></div></a>
+                  {/* <Button
                     id="qsLoginBtn"
-                    color="primary"
-                    className="btn-margin"
+                    color="light"
+                    className="font-weight-bold btn-margin mb-4 text-black btn-primary h-25"
+                    size="sm"
                     onClick={() => loginWithRedirect({})}
                   >
                     Log in
-                  </Button>
+                  </Button> */}
                 </NavItem>
               )}
               {isAuthenticated && (
                 <UncontrolledDropdown nav inNavbar>
-                  <DropdownToggle nav caret id="profileDropDown">
-                    <img
+                  <DropdownToggle nav caret id="profileDropDown" className="text-white"> 
+                  <i className="fas fa-user-lock fa-lg mb-4" style={{color: 'white'}}/>
+                 
+                    {/* <img
                       src={user.picture}
                       alt="Profile"
-                      className="nav-user-profile rounded-circle"
-                      width="50"
-                    />
+                      className="nav-user-profile rounded-circle mb-3"
+                      width="38"
+                    /> */}
                   </DropdownToggle>
                   <DropdownMenu>
                     <DropdownItem header>{user.name}</DropdownItem>
@@ -78,7 +108,7 @@ const NavBar = () => {
                       tag={RouterNavLink}
                       to="/profile"
                       className="dropdown-profile"
-                      activeClassName="router-link-exact-active"
+                      activeClassName="router-link-exact-active-new"
                     >
                       <FontAwesomeIcon icon="user" className="mr-3" /> Profile
                     </DropdownItem>
@@ -128,7 +158,7 @@ const NavBar = () => {
                   <FontAwesomeIcon icon="user" className="mr-3" />
                   <RouterNavLink
                     to="/profile"
-                    activeClassName="router-link-exact-active"
+                    activeClassName="router-link-exact-active-new"
                   >
                     Profile
                   </RouterNavLink>

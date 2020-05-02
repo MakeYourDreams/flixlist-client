@@ -35,12 +35,22 @@ body {
 
   /* a img:hover{ position: relative; 
     top: -5px;} */
+
+    .navStyle {
+      height: 64px;
+      background-color: rgb(40, 113, 177) !important;
+    }
     
     .nav-link-movie {
       color: black !important; 
       text-decoration: none !important;
       vertical-align: middle;
     }
+
+    .router-link-exact-active-new {
+      color: #041433;
+      border-bottom: 3px solid #ffffff54;
+  }
 
     .hvr-float {
       color: black !important; 
@@ -87,4 +97,52 @@ body {
       opacity: 0.35;
     }
 
-/*# sourceMappingURL=style.css.map */
+    .hideme {
+      animation: fadein 0.5s;
+      -moz-animation: fadein 0.5s; /* Firefox */
+      -webkit-animation: fadein 0.5s; /* Safari and Chrome */
+      -o-animation: fadein 0.5s; /* Opera */
+  }
+  @keyframes fadein {
+      from {
+          opacity:0;
+      }
+      to {
+          opacity:1;
+      }
+  }
+  @-moz-keyframes fadein { /* Firefox */
+      from {
+          opacity:0;
+      }
+      to {
+          opacity:1;
+      }
+  }
+  @-webkit-keyframes fadein { /* Safari and Chrome */
+      from {
+          opacity:0;
+      }
+      to {
+          opacity:1;
+      }
+  }
+  @-o-keyframes fadein { /* Opera */
+      from {
+          opacity:0;
+      }
+      to {
+          opacity: 1;
+      }
+  }
+
+
+  @media (min-width: 1200px) {
+    .container, .container-lg, .container-md, .container-sm, .container-xl {
+    display: flex !important;
+    max-width: 1600px !important;
+    padding: 0px 56px !important;
+    margin: 0px auto !important;
+  }
+}
+
