@@ -64,13 +64,31 @@ const NavBar = () => {
                 <NavItem>
                 <NavLink
                   tag={RouterNavLink}
+                  to="/"
+                  exact
+                  activeClassName="router-link-exact-active-new"
+                  className="text-white mb-3 font-weight-light nav-hov"
+                  style={{fontSize: '15px'}}
+                >
+                  <div className="nav-hov-helper">
+                  <span className="">Trending</span>
+                  </div>
+                </NavLink>
+                </NavItem>
+              </Nav>
+            <Nav className="d-none d-md-block" navbar>
+                <NavItem>
+                <NavLink
+                  tag={RouterNavLink}
                   to="/favorites"
                   exact
                   activeClassName="router-link-exact-active-new"
-                  className="text-white mb-3 font-weight-bold"
-                  style={{fontSize: '14px'}}
+                  className="text-white mb-3 font-weight-light nav-hov"
+                  style={{fontSize: '15px'}}
                 >
-                  Favorites
+                  <div className="nav-hov-helper">
+                  <span className="">Favorites</span>
+                  </div>
                 </NavLink>
                 </NavItem>
               </Nav>
@@ -78,7 +96,7 @@ const NavBar = () => {
             <Nav className="d-none d-md-block" navbar>
               {!isAuthenticated && (
                 <NavItem>
-                  <a href="" onClick={() => loginWithRedirect({})}><div className="container justify-content-md-center mb-4"><i className="fa fa-user fa-lg mb-4" style={{color: 'white'}}/></div></a>
+                  <a href="" onClick={() => loginWithRedirect({})}><div className="justify-content-md-center mb-1"><i className="fa fa-user-plus fa-lg mb-4" style={{color: 'white'}}/></div></a>
                   {/* <Button
                     id="qsLoginBtn"
                     color="light"

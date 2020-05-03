@@ -39,7 +39,7 @@ export const Auth0Provider = ({
         const user = await auth0FromHook.getUser();
         setUser(user);
         console.log("123", user.email)
-        axios.get('http://localhost:9000/users/adduser/' + user.email)
+        axios.get('http://localhost:9000/favorites/adduser/' + user.email)
         .then(response => {
           console.log(response)
       })

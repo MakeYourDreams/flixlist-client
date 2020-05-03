@@ -68,7 +68,7 @@ class Content extends Component {
       // Checks that the page has scrolled to the bottom
       if (
         window.innerHeight + document.documentElement.scrollTop
-        > (scrollHeight - (280 + (pageNumber * (window.innerHeight / 100))))
+        > (scrollHeight - (200 + (pageNumber * (window.innerHeight / 100))))
       ) {
         this.setState({pageNumber: pageNumber + 1});
         this.getMovies(0)
@@ -78,36 +78,65 @@ class Content extends Component {
 
   
 
- handleClick (movID, e) {
+  handleClick (movID, e) {
 
-  console.log("grr", e.target)
-  e.target.classList = ("fa fa-spinner fa-spin setGray")
-  if (this.context.user !== undefined){
-  axios.get('http://localhost:9000/users/favorites/' + this.context.user.email + '&' + movID)
-    .then(response => {
-      var compareState = this.state.userFavorites
-      compareState.push(movID)
-      this.setState({userFavorites: compareState});
-      setTimeout(() => { 
-      for (const [i, v] of this.state.movieData.entries()) {
+    e.target.classList = ("fa fa-spinner fa-spin setGray")
+    if (this.context.user !== undefined){
+
+      var rawFavorites = JSON.stringify(this.state.userFavorites)
+
+      if (rawFavorites.includes(movID)) {
+        setTimeout(() => { 
+          for (const [i, v] of this.state.movieData.entries()) {
+            
+            if (movID == this.state.movieData[i].id) {
+              var compareState2 = this.state.movieData
+              compareState2[i].fav = "far fa-heart fa-2x favStyleNotActive";
+                console.log("FOUND MATCH 2", movID)
+                this.setState({movieData: compareState2});
+    
+                axios.get('http://localhost:9000/favorites/removefavorites/' + this.context.user.email + '&' + movID)
+                .then(response => {
+                  console.log(response)
+                  this.setState({userFavorites: response.data});
+                  console.log(this.state)
         
-        if (movID == this.state.movieData[i].id) {
-          var compareState2 = this.state.movieData
-          compareState2[i].fav = "fa fa-heart fa-2x favStyleActive";
-            console.log("FOUND MATCH", movID)
-            this.setState({movieData: compareState2});
-            break
-        }
-        
-        }
-      }, 500)
-        console.log(response)
-        console.log(this.state)
-    })
-  } else {
-    window.location.href = "/login"
-  }
-  }
+              })
+                break
+              } 
+            }
+          }, 500)
+
+      return
+    }
+
+        setTimeout(() => { 
+        for (const [i, v] of this.state.movieData.entries()) {
+          
+          if (movID == this.state.movieData[i].id) {
+            var compareState2 = this.state.movieData
+            compareState2[i].fav = "fa fa-heart fa-2x favStyleActive";
+              console.log("FOUND MATCH", movID)
+              this.setState({movieData: compareState2});
+  
+              axios.post('http://localhost:9000/favorites/addfavorites/' + this.context.user.email, compareState2[i])
+              .then(response => {
+                var compareState = this.state.userFavorites
+                compareState.push(movID)
+                this.setState({userFavorites: compareState});
+                console.log(response)
+                console.log(this.state)
+              })
+  
+              break
+          }
+          
+          }
+        }, 500)
+    } else {
+      window.location.href = "/login"
+    }
+    }
 
 
   getMovies(numFound) {
@@ -115,7 +144,7 @@ class Content extends Component {
     this.setState({isLoading: true})
     console.log(this.state)
     if (this.context.user !== undefined){
-    axios.get('http://localhost:9000/users/getfavorites/' + this.context.user.email)
+    axios.get('http://localhost:9000/favorites/getfavorites/' + this.context.user.email)
     .then(userFavorities => {
       // console.log("favvs", userFavorities.data);
       this.setState({userFavorites: userFavorities.data});
@@ -306,7 +335,7 @@ class Content extends Component {
         }
 
         compareState2 = this.state.movieData.filter(data => {
-          if (data.IMDB !== undefined) return data.IMDB.substr(0, 3) >= 6.9
+          if (data.IMDB !== undefined) return data.IMDB.substr(0, 3) >= 6.8
           }
           )
 
@@ -332,8 +361,8 @@ class Content extends Component {
     setTimeout(() => { 
         for (const [i, v] of this.state.movieData.entries()) {
           if (i < ((data.results.length) - numFound)) continue
-          
-          if (this.state.userFavorites.includes(`${this.state.movieData[i].id}`)) {
+          var rawFavorites = JSON.stringify(this.state.userFavorites)
+          if (rawFavorites.includes(`${this.state.movieData[i].id}`)) {
             var compareState2 = this.state.movieData
             compareState2[i].fav = "fa fa-heart fa-2x favStyleActive";
             this.setState({movieData: compareState2});
@@ -387,6 +416,8 @@ class Content extends Component {
     };
 
     const favStyle = {
+      // position: 'absolute', 
+      // right: '42px',
       marginLeft: '38px',
       fontSize: '1.6rem',
       // width: '100%', 
@@ -437,7 +468,7 @@ class Content extends Component {
         <h5 className="card-title" style={titleStyle}>{mov.title}</h5>
         <span>{mov.release_date} </span>
         </RouterNavLink>
-        {/* <RouterNavLink to={`http://localhost:9000/users/favorites/${this.state.user}&${mov.id}`} exact className="hvr-float">
+        {/* <RouterNavLink to={`http://localhost:9000/favroites/addfavorites/${this.state.user}&${mov.id}`} exact className="hvr-float">
         <i className="fa fa-heart fa-3x" style={{color: 'yellow'}}/>
         </RouterNavLink> */}
         {/* {mov.IMDB !== undefined && mov.IMDB.substr(0, 3) >= 6.9 &&  */}

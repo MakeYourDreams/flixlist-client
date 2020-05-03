@@ -1,5 +1,5 @@
 body {
-  font-family: 'Roboto', sans-serif !important; }
+  font-family: 'Nunito', sans-serif !important; }
 
 
 
@@ -48,9 +48,27 @@ body {
     }
 
     .router-link-exact-active-new {
-      color: #041433;
-      border-bottom: 3px solid #ffffff54;
+      border-bottom: 2px solid #ffffffc5;
+      border-radius: 3px;
+      pointer-events: none;
+      cursor: default;
   }
+  
+  .nav-hov-helper {
+    -webkit-box-align: center;
+    align-items: center !important;
+    display: flex;
+    letter-spacing: 0.2px;
+    position: relative;
+    text-decoration: none;
+  height: 25px;
+}
+
+  .nav-hov:hover  {
+      /* font-weight: bold !important; */
+      /* border-radius: 8px; */
+      background-color: hsla(0,0%,100%,.1);
+}
 
     .hvr-float {
       color: black !important; 
@@ -70,6 +88,8 @@ body {
     .hvr-float:hover, .hvr-float:focus, .hvr-float:active {
       -webkit-transform: translateY(-8px);
       transform: translateY(-8px);
+      /* transform: scale(1.03, 1.03);
+      -webkit-transform: scale(1.03, 1.03); */
     }
 
     .favStyleActive {
@@ -80,7 +100,7 @@ body {
       color: rgb(97, 96, 100);
     }
 
-    h5:hover {
+    .card-body:hover .card-title {
       display: inline-block !important;
       -webkit-line-clamp: 4 !important;
       -webkit-box-orient: vertical !important;
@@ -88,6 +108,8 @@ body {
       white-space: normal !important; 
       text-overflow: initial !important;
     }
+
+
 
     .setGray {
       color: rgb(100, 100, 100);
@@ -139,7 +161,6 @@ body {
 
   @media (min-width: 1200px) {
     .container, .container-lg, .container-md, .container-sm, .container-xl {
-    display: flex !important;
     max-width: 1600px !important;
     padding: 0px 56px !important;
     margin: 0px auto !important;
