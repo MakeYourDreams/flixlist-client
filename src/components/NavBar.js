@@ -54,7 +54,7 @@ const NavBar = () => {
                   to="/"
                   exact
                   activeClassName=""
-                  className="text-white font-weight-bold mb-3"
+                  className="nav-hov-helper text-white font-weight-bold mb-4"
                 >
                   Flixlist
                 </NavLink>
@@ -68,7 +68,7 @@ const NavBar = () => {
                   exact
                   activeClassName="router-link-exact-active-new"
                   className="text-white mb-3 font-weight-light nav-hov"
-                  style={{fontSize: '15px'}}
+                  style={{fontSize: '0.955rem'}}
                 >
                   <div className="nav-hov-helper">
                   <span className="">Trending</span>
@@ -84,7 +84,7 @@ const NavBar = () => {
                   exact
                   activeClassName="router-link-exact-active-new"
                   className="text-white mb-3 font-weight-light nav-hov"
-                  style={{fontSize: '15px'}}
+                  style={{fontSize: '0.955rem'}}
                 >
                   <div className="nav-hov-helper">
                   <span className="">Favorites</span>

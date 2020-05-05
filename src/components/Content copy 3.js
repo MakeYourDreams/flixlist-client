@@ -1,19 +1,30 @@
-import React, { Component } from "react";
-import { Row, Col } from "reactstrap";
+import React, { useState, Component } from "react";
+import { Row, Col, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem} from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {  faImdb  } from '@fortawesome/free-brands-svg-icons';
 import '../../node_modules/@fortawesome/fontawesome-free/css/brands.css'
 import contentData from "../utils/contentData";
 import axios from 'axios';
 import { v3, v4 } from "@leonardocabeza/the-movie-db";
+import { NavLink as RouterNavLink } from "react-router-dom";
+import { Auth0Context } from "../react-auth0-spa";
+
+// make filter by  setting state only of what  matches filter. then continue until >= 20 results.
 
 import '../style.css'
 import IMDBlogo from "../assets/IMDBlogo.png";
 import tomato from "../assets/tomato.png";
+import badTomato from "../assets/badTomato.png";
+import goodTomato from "../assets/goodTomato.png";
+
+
+import debounce from "lodash.debounce";
+
 
 class Content extends Component {
+  static contextType = Auth0Context
 
-  
+
   constructor(props) {
     super(props);
 
@@ -22,32 +33,223 @@ class Content extends Component {
       loadedfin :"d-none",
       movieData: [],
       ratingData: [],
-      ratingData2: []
+      ratingData2: [],
+      userFavorites: [],
+      ratingFilter: 0,
+      pageNumber: 1,
+      error: false,
+      hasMore: true,
+      isLoading: false,
+      scrollHeight: 9999
     };
 
+    this.handleClick = this.handleClick.bind(this);
     this.codeNode = React.createRef();
+  // Binds our scroll event handler
+    window.onscroll = debounce(() => {
+      const {
+        loadUsers,
+        state: {
+          error,
+          isLoading,
+          hasMore,
+          scrollHeight,
+          pageNumber
+        },
+      } = this;
+      
+
+      // Bails early if:
+      // * there's an error
+      // * it's already loading
+      // * there's nothing left to load
+      if (error || isLoading || !hasMore) return;
+
+      // Checks that the page has scrolled to the bottom
+      if (
+        window.innerHeight + document.documentElement.scrollTop
+        > (scrollHeight - (220 + (pageNumber * (window.innerHeight / 100))))
+      ) {
+        this.setState({pageNumber: pageNumber + 1});
+        this.getMovies(0)
+      }
+    }, 100);
   }
 
-  componentDidMount() {
-    const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';
-    // For v4 endpoints (https://developers.themoviedb.org/4):
-    const v4ApiKey = 'YOUR_V4_API_KEY';
-    const userToken = 'AN_USER_ACCESS_TOKEN';
-    const accountId = 'AN_ACCOUNT_ID';
-    
-    const v3Client = v3(v3ApiKey);
-    const v4Client = v4(v4ApiKey);
+  
+  
+  setRatingFilter (filterRating, e) {
+    document.getElementById("dropdownMenuButton1").innerText = "IMDB Rating " + e.target.innerText
+    //   var compareState3 = this.state.movieData.filter(data => {
+    //       if (data.IMDB !== undefined) return data.IMDB.substr(0, 3) >= filterRating
+    //       })
+    // 
+    var compareState3 = this.state.movieData
+    for (const [i, v] of this.state.movieData.entries()) {
+      if (this.state.movieData[i].IMDB !== undefined && filterRating !== 0 && this.state.movieData[i].IMDB.substr(0, 3) < filterRating) {
+        compareState3[i].filteredStyle = "hiddenCard"
+      } else {
+        compareState3[i].filteredStyle = "visibleCard"
+      }
+    }
+    this.setState({movieData: compareState3});
+    this.setState({ratingFilter: filterRating});
+    this.getMovies(this.state.pageNumber * 20)
+  }
 
-    v3Client.movie.popular()
+  handleClick (movID, e) {
+
+    e.target.classList = ("fa fa-spinner fa-spin setGray")
+    if (this.context.user !== undefined){
+
+      var rawFavorites = JSON.stringify(this.state.userFavorites)
+
+      if (rawFavorites.includes(movID)) {
+        setTimeout(() => { 
+          for (const [i, v] of this.state.movieData.entries()) {
+            
+            if (movID == this.state.movieData[i].id) {
+              var compareState2 = this.state.movieData
+              compareState2[i].fav = "far fa-heart fa-2x favStyleNotActive";
+                console.log("FOUND MATCH 2", movID)
+                this.setState({movieData: compareState2});
+    
+                axios.get('http://localhost:9000/favorites/removefavorites/' + this.context.user.email + '&' + movID)
+                .then(response => {
+                  console.log(response)
+                  this.setState({userFavorites: response.data});
+                  console.log(this.state)
+        
+              })
+                break
+              } 
+            }
+          }, 400)
+
+      return
+    }
+
+        setTimeout(() => { 
+        for (const [i, v] of this.state.movieData.entries()) {
+          
+          if (movID == this.state.movieData[i].id) {
+            var compareState2 = this.state.movieData
+            compareState2[i].fav = "fa fa-heart fa-2x favStyleActive";
+              console.log("FOUND MATCH", movID)
+              this.setState({movieData: compareState2});
+  
+              axios.post('http://localhost:9000/favorites/addfavorites/' + this.context.user.email, compareState2[i])
+              .then(response => {
+                var compareState = this.state.userFavorites
+                compareState.push(movID)
+                this.setState({userFavorites: compareState});
+                console.log(response)
+                console.log(this.state)
+              })
+  
+              break
+          }
+          
+          }
+        }, 500)
+    } else {
+      window.location.href = "/login"
+    }
+    }
+
+
+  getMovies(numFound) {
+
+    if (this.state.isLoading == true && numFound >= (numFound + 20)) {
+      this.setState({isLoading: false})
+      return
+    }
+    // this.setState({user: this.context.user.email});
+    this.setState({isLoading: true})
+    console.log(this.state)
+    if (this.context.user !== undefined){
+    axios.get('http://localhost:9000/favorites/getfavorites/' + this.context.user.email)
+    .then(userFavorities => {
+      // console.log("favvs", userFavorities.data);
+      this.setState({userFavorites: userFavorities.data});
+    })
+  }
+    // console.log("favvs2", this.state.userFavorites)
+    const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
+    const v3Client = v3(v3ApiKey);
+    v3Client.movie.popular({
+      page: this.state.pageNumber
+    })
     .then((data) => {
 
-      this.setState({movieData: data.results});
+      //FILTER RESULTS
+      var newData = data.results //if no filter
+      // var newData = data.results.filter(data => {
+      //   if (data.release_date !== undefined) return data.release_date.substr(0, 4) >= 2010;
+      //   }
+      //   );
+      data.results = newData
 
+
+
+      if (this.state.movieData == null) {
+      this.setState({movieData: data.results});
+      } else {
+        var savePageMovies = this.state.movieData
+        console.log("PREV PAGE", savePageMovies)
+        data.results = savePageMovies.concat(data.results) 
+        this.setState({movieData: data.results});
+        console.log("NEXT PAGE", data.results)
+      }
+
+      
+      
+      if (this.state.pageNumber >= 200) this.setState({hasMore: false});
+      numFound = numFound + newData.length
+      if ((numFound < 20) && (this.state.pageNumber < 200)){
+
+        
       for (const [i, v] of data.results.entries()) {
+        // console.log("PAGE", this.state.pageNumber, v)
+        if (i < ((data.results.length) - numFound)) continue
+        if (v.release_date === undefined) continue
+        if (!isNaN(v.release_date.substr(0, 4))) {
         var d = new Date(v.release_date);
         d = d.toLocaleString('default', { month: 'short' })
-        data.results[i].release_date = d + ", " + v.release_date[0] + v.release_date[1] + v.release_date[2] + v.release_date[3];
+        data.results[i].release_date = d + ", " + v.release_date.substr(0, 4);
+        }
+        if (!data.results[i].IMDB) {
+        data.results[i].loaded = "fa fa-spinner fa-spin fa-lg";
+        data.results[i].loadedfin = "d-none";
+        data.results[i].fav = "far fa-heart fa-2x favStyleNotActive";
+        }
+
         this.setState({movieData: data.results});
+      }
+
+      this.setState({pageNumber: this.state.pageNumber + 1});
+      this.getMovies(numFound)
+      return
+      }
+      console.log("NEWDATA", numFound)
+
+      for (const [i, v] of data.results.entries()) {
+        // console.log("PAGE", this.state.pageNumber, v)
+        if (i < ((data.results.length) - numFound)) continue
+        if (v.release_date === undefined) continue
+        if (!isNaN(v.release_date.substr(0, 4))) {
+        var d = new Date(v.release_date);
+        d = d.toLocaleString('default', { month: 'short' })
+        data.results[i].release_date = d + ", " + v.release_date.substr(0, 4);
+        }
+        if (!data.results[i].IMDB) {
+        data.results[i].loaded = "fa fa-spinner fa-spin fa-lg";
+        data.results[i].loadedfin = "d-none";
+        data.results[i].fav = "far fa-heart fa-2x favStyleNotActive";
+        }
+
+        this.setState({movieData: data.results});
+
       // console.log(props)
         axios({
           "method":"GET",
@@ -58,13 +260,16 @@ class Content extends Component {
           "x-rapidapi-key": "1mAVi8jSwlmsh07ghuCUnNKdyw9ip15YyMJjsng8L9nsfQVPyn"
           },"params":{
           "page":"1",
-          "y":v.release_date[0] + v.release_date[1] + v.release_date[2] + v.release_date[3],
+          "y":v.release_date.substr(5, 8),
           "r":"json",
           "type":"movie",
           "s":data.results[i].title
           }
           })
           .then((response)=>{
+            var compareState = this.state.movieData
+            compareState[i].imdbID = response.data.Search[0].imdbID
+            this.setState({movieData: compareState});
               axios({
                 "method":"GET",
                 "url":"https://movie-database-imdb-alternative.p.rapidapi.com/",
@@ -78,16 +283,43 @@ class Content extends Component {
                 }
               })
               .then((response2) =>{
-                console.log(response2.data)
+                 
+                // console.log(response2.data)
                 this.setState({loaded: ""});
                 this.setState({loadedfin: "d-flex"});
-                if (response2.data.Ratings.length == 0){
-                console.log("grr", response2)
-                this.setState({ ratingData: this.state.ratingData.concat('-') });
+                // if (response2.data.Ratings.length == 0){
+                // console.log("grr", response2)
+                // this.setState({ ratingData: this.state.ratingData.concat('-') });
+                // }
+                for (const [i, v] of this.state.movieData.entries()) {
+                  if (i < ((data.results.length) - numFound)) continue
+                  if (v.release_date === undefined) continue
+                  if (response2.data.Title == this.state.movieData[i].title) {
+                    var compareState = this.state.movieData
+                    compareState[i].IMDB = response2.data.Ratings[0].Value
+                    compareState[i].RT = response2.data.Ratings[1].Value
+                    compareState[i].RT.substr(0, 2) >= 60 ? compareState[i].RTimg = tomato : compareState[i].RTimg = badTomato;
+                    if (!compareState[i].RT.includes("%")) compareState[i].RT = (compareState[i].RT.substr(0, 2) + "%")
+                    compareState[i].loaded = ""
+                    compareState[i].loadedfin = "d-flex"
+                    this.setState({movieData: compareState});
+                    break
+                  } 
+                  else if (response2.data.Title.substr(0, 9) == this.state.movieData[i].title.substr(0, 9)) {
+                    var compareState = this.state.movieData
+                    compareState[i].IMDB = response2.data.Ratings[0].Value
+                    compareState[i].RT = response2.data.Ratings[1].Value
+                    compareState[i].RT.substr(0, 2) >= 60 ? compareState[i].RTimg = tomato : compareState[i].RTimg = badTomato;
+                    if (!compareState[i].RT.includes("%")) compareState[i].RT = (compareState[i].RT.substr(0, 2) + "%")
+                    compareState[i].loaded = ""
+                    compareState[i].loadedfin = "d-flex"
+                    this.setState({movieData: compareState});
+                    break
+                  }
+              //  this.setState({ ratingData: this.state.ratingData.concat(response2.data.Ratings[0].Value) });
+              //  this.setState({ ratingData2: this.state.ratingData2.concat(response2.data.Ratings[1].Value) });
                 }
-               this.setState({ ratingData: this.state.ratingData.concat(response2.data) });
-               this.setState({ ratingData2: this.state.ratingData2.concat(response2.data.Ratings[1].Value) });
-                console.log(this.state)
+                // console.log(this.state)
               })
               .catch((error)=>{
                 console.log(error)
@@ -98,80 +330,231 @@ class Content extends Component {
           })
     }
 
-    console.log("FINISHED")
+    // console.log("FINISHED")
+    // If can't find reviews we stop the loading spinner.
+    setTimeout(() => { 
+      var scrollHeight = document.getElementsByTagName("body")[0].scrollHeight
+      this.setState({scrollHeight: scrollHeight});
+      for (const [i, v] of this.state.movieData.entries()) {
+        if (i < ((data.results.length) - numFound)) continue
+        var compareState2 = this.state.movieData
+        compareState2[i].loaded = ""
+        compareState2[i].loadedfin = "d-flex"
+        if (this.state.movieData[i].IMDB == undefined) {
+          compareState2[i].IMDB = "N/A";
+          compareState2[i].loadedfin = "d-flex ratingTransparent"
+        }
+        if (this.state.movieData[i].RT == undefined) {
+          compareState2[i].RT = "N/A"
+          compareState2[i].RTimg = tomato;
+        }
+        if ((this.state.movieData[i].IMDB !== undefined) && (this.state.movieData[i].RT == undefined)){
+          compareState2[i].loadedfin = "d-flex"
+        }
+
+        
+        if (this.state.movieData[i].IMDB !== undefined && this.state.ratingFilter !== 0 && this.state.movieData[i].IMDB.substr(0, 3) < this.state.ratingFilter) {
+          compareState2[i].filteredStyle = "hiddenCard"
+        } else {
+          compareState2[i].filteredStyle = "visibleCard"
+        }
+        // if (compareState2[i].IMDB !== "5.7/10") {
+        //   compareState2.splice(i, 1)
+        //   i = -1
+        // }
+        this.setState({movieData: compareState2});
+        }
+
+        if (this.state.ratingFilter !== 0) {
+        var compareState3 = this.state.movieData.filter(data => {
+          if (data.IMDB !== undefined) return data.IMDB.substr(0, 3) >= this.state.ratingFilter
+          }
+          )
+        
+
+          if (this.state.pageNumber >= 200) this.setState({hasMore: false});
+          numFound = compareState3.length
+          console.log("FOUND", numFound)
+          if ((compareState3.length < 20) && (this.state.pageNumber < 200)){
+            // this.setState({movieData: compareState2});
+            this.setState({pageNumber: this.state.pageNumber + 1});
+            this.getMovies(numFound)
+            return
+          }
+        }
+          
+          this.setState({movieData: compareState2});
+        this.setState({isLoading: false});
+        var scrollHeight = document.getElementsByTagName("body")[0].scrollHeight
+        this.setState({scrollHeight: scrollHeight});
+        console.log("TIMEOUT FINISHED", this.state)
+    }, 2000);
+
+    //Set favorites
+    setTimeout(() => { 
+        for (const [i, v] of this.state.movieData.entries()) {
+          if (i < ((data.results.length) - numFound)) continue
+          var rawFavorites = JSON.stringify(this.state.userFavorites)
+          if (rawFavorites.includes(`${this.state.movieData[i].id}`)) {
+            var compareState2 = this.state.movieData
+            compareState2[i].fav = "fa fa-heart fa-2x favStyleActive";
+            this.setState({movieData: compareState2});
+          }
+
+          }
+          console.log(this.state)
+    }, 400);
+
+
       
-      // console.log(data.results[2])
-      // this.setState({ loaded: true });
-      // res.render('./weekly/allContacts',{ popularMovies: data.results })
     })
     .catch((error) => {
       console.log('error: ', error);
     });
   }
 
-  
+  componentDidMount () {
+    this.getMovies(0)
+  }
 
   
   render() {
 
     const cardStyle = {
-      marginTop: '4vh',
-      padding: '2px',
-      width: '20%'
+      margin: '3px',
+      padding: '3px',
+      width: '16%',
+      // backgroundColor: 'rgba(230, 230, 255, 0.2)',
+      border: '0',
     };
 
     
     const ratingStyle = {
-      width: '26px'
+      width: '20px',
+      height: '20px'
+
       // border: '1px',
       // borderStyle: 'solid'
       // backgroundColor: 'black'
     };
 
+    const titleStyle = {
+      marginTop: '10px',
+      whiteSpace: 'nowrap', 
+      width: '150px', 
+      height: '20px',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      fontSize: '18px',
+    };
+
+    const favStyle = {
+      // position: 'absolute', 
+      // right: '42px',
+      marginLeft: '38px',
+      fontSize: '1.6rem',
+      // width: '100%', 
+      // textAlign: 'right',
+      zIndex: '99',
+      // position: 'absolute'
+    };
+
+
+    
     // const { loaded } = this.state;
 
     // if (!loaded) {
     //   return null;
     // }
+
+    const {
+      error,
+      hasMore,
+      isLoading,
+      pageNumber
+    } = this.state;
+
+
+    const theHTML = this.state.movieData.map((mov, i) => (
+      <div className={mov.filteredStyle} style={cardStyle}>
+       
+      <RouterNavLink to={`/movie/${mov.id}`} exact className="nav-link-movie">
+      <img className="card-img-top hideme" src={`https://image.tmdb.org/t/p/w500/${mov.poster_path}`} alt="Card image cap" style={{borderRadius: '6px'}}></img>
+      </RouterNavLink>
+      <div className="card-body" style={{marginLeft: '-10px'}}>
+      <i className={mov.loaded} style={{color: 'gray'}}/>
+        <div className={mov.loadedfin}>
+          {/* <FontAwesomeIcon icon={faImdb} className="fa-lg"/>  */}
+        <a target="_blank" href={`https://www.imdb.com/title/${mov.imdbID}`} className="rate-float">
+        {mov.RTimg && 
+        
+        <img src={IMDBlogo} alt="IMDB" style={ratingStyle}></img>
+        }
+        {mov.RTimg && 
+        <span style={{marginRight: '10px'}}><b>{mov.IMDB}</b></span>
+        }
+        {mov.RTimg && 
+        <img src={mov.RTimg} alt="Rotten Tomatoes" style={ratingStyle}></img>
+        }
+        {mov.RTimg && 
+        <span style={{textDecoration: 'none !important'}}><b>{mov.RT}</b></span>
+        }
+        </a>
+        </div>
+        <RouterNavLink to={`/movie/${mov.id}`} exact className="nav-link-movie">
+        <h5 className="card-title" style={titleStyle}>{mov.title}</h5>
+        <span>{mov.release_date} </span>
+        </RouterNavLink>
+        {/* <RouterNavLink to={`http://localhost:9000/favroites/addfavorites/${this.state.user}&${mov.id}`} exact className="hvr-float">
+        <i className="fa fa-heart fa-3x" style={{color: 'yellow'}}/>
+        </RouterNavLink> */}
+        {/* {mov.IMDB !== undefined && mov.IMDB.substr(0, 3) >= 6.9 &&  */}
+        <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
+      </div >
+      
+      
+      {/* <button className='button' onClick={() => this.handleClick(mov.id)}> */}
+      {/* <i className={mov.fav} style={{marginTop: '0'}} onClick={() => this.handleClick(mov.id)}/> */}
+    {/* Favorite
+  </button> */}
+      </div>
+      
+      ))
     
 // console.log(this.state.ratingData)
 
-    return (
-      <div className="next-steps my-5">
-                <h2 className="my-5 text-center">Top movies of the week</h2>
-        <Row className="d-flex justify-content-between">
-          {/* {console.log("wow", this.state.movieData[1])} */}
-          
-          {this.state.ratingData.map((mov, i) => (
-          <div className="card" style={cardStyle}>
-          <img className="card-img-top" src={`${mov.Poster}`} alt="Card image cap"></img> 
-          <div className="card-body">
-            <h5 className="card-title"><b>{mov.Title}</b></h5>
-            <i className={this.state.loaded}/>
-            
-            <div className={this.state.loadedfin}>
-              {/* <FontAwesomeIcon icon={faImdb} className="fa-lg"/>  */}
-            <img src={IMDBlogo} alt="IMDB" style={{width: '26px'}}></img>
-            <span style={{marginRight: '10px'}}><b>{mov.Title}</b></span>
-            <img src={tomato} alt="Rotten Tomatoes" style={{width: '26px'}}></img>
-            <span><b>{this.state.ratingData2[i]}</b></span>
-            </div>
-            <span></span>
-            <div className={this.state.loadedfin}>
-              {/* <FontAwesomeIcon icon={faImdb} className="fa-lg"/>  */}
 
-            </div>
-          </div >
-          <ul className="list-group list-group-flush">
-            <li className="list-group-item">{mov.release_date}</li>
-            <li className="list-group-item"></li>
-            <li className="list-group-item"></li>
-          </ul>
-          <div className="card-body">
-            <a href="users/profile/{{this._id}}" className="card-link">See details</a>
-          </div>
-          </div>
-          ))}
+    return (
+      
+      <div className="next-steps">
+        <h5 className="pb-3 text-left font-weight-bold flex-row">Trending Movies
+        <button class="btn btn-light btn-sm dropdown-toggle ml-5 rounded" type="button" id="dropdownMenuButton1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Filter IMDB Rating
+  </button>
+  <div  class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+    <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(8, e)}>8+</a>
+    <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(7, e)}>7+</a>
+    <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(6.5, e)}>6½+</a>
+    <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(6, e)}>6+</a>
+    <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(5.5, e)}>5½+</a>
+    <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(5, e)}>5+</a>
+  </div>
+        </h5>  
+        
+
+        <Row className="d-flex">
+          {/* {console.log("wow", this.state.movieData[1])} */}
+          {theHTML}
+          
+          {isLoading &&
+          <span style={{marginTop: '10px'}}>Loading...<i className="fa fa-spinner fa-spin fa-3x"/></span>
+        }
+        {!isLoading &&
+        <span>Page {pageNumber} </span>
+        }
+        {!hasMore &&
+          <div>You did it! You reached the end!</div>
+        }
         </Row>
       </div>
     );

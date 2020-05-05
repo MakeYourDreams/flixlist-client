@@ -1,5 +1,5 @@
 import React, { useState, Component } from "react";
-import { Row, Col } from "reactstrap";
+import { Row, Col, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem} from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {  faImdb  } from '@fortawesome/free-brands-svg-icons';
 import '../../node_modules/@fortawesome/fontawesome-free/css/brands.css'
@@ -35,8 +35,8 @@ class Content extends Component {
       ratingData: [],
       ratingData2: [],
       userFavorites: [],
+      ratingFilter: 0,
       pageNumber: 1,
-      message: "",
       error: false,
       hasMore: true,
       isLoading: false,
@@ -68,15 +68,26 @@ class Content extends Component {
       // Checks that the page has scrolled to the bottom
       if (
         window.innerHeight + document.documentElement.scrollTop
-        > (scrollHeight - (200 + (pageNumber * (window.innerHeight / 100))))
+        > (scrollHeight - (220 + (pageNumber * (window.innerHeight / 100))))
       ) {
         this.setState({pageNumber: pageNumber + 1});
-        this.getMovies(0)
+        this.getMovies(0, this.state.pageNumber)
       }
     }, 100);
   }
 
   
+  
+  setRatingFilter (filterRating, e) {
+    document.getElementById("dropdownMenuButton1").innerText = "IMDB Rating " + e.target.innerText
+    this.setState({ratingFilter: filterRating});
+    this.setState({pageNumber: 1});
+    this.setState({isLoading: false})
+    this.setState({movieData: []});
+    this.setState({scrollHeight: 9999});
+
+    this.getMovies(0, 1)
+  }
 
   handleClick (movID, e) {
 
@@ -105,7 +116,7 @@ class Content extends Component {
                 break
               } 
             }
-          }, 500)
+          }, 400)
 
       return
     }
@@ -139,7 +150,15 @@ class Content extends Component {
     }
 
 
-  getMovies(numFound) {
+  getMovies(numFound, pageNumber) {
+
+    if (this.state.isLoading == true && numFound >= 20) {
+      // setTimeout(() => {  
+      //   this.getMovies(numFound) 
+      //   this.setState({isLoading: false})
+      // }, 500);
+  return
+}
     // this.setState({user: this.context.user.email});
     this.setState({isLoading: true})
     console.log(this.state)
@@ -154,18 +173,19 @@ class Content extends Component {
     const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
     const v3Client = v3(v3ApiKey);
     v3Client.movie.popular({
-      page: this.state.pageNumber
+      page: pageNumber
     })
     .then((data) => {
 
+
       //FILTER RESULTS
       var newData = data.results //if no filter
-      var newData = data.results.filter(data => {
-        if (data.release_date !== undefined) return data.release_date.substr(0, 4) >= 2015;
-        }
-        );
+      // var newData = data.results.filter(data => {
+      //   if (data.release_date !== undefined) return data.release_date.substr(0, 4) >= 2010;
+      //   }
+      //   );
       data.results = newData
-
+console.log(this.state.pageNumber, newData)
 
 
       if (this.state.movieData == null) {
@@ -204,7 +224,7 @@ class Content extends Component {
       }
 
       this.setState({pageNumber: this.state.pageNumber + 1});
-      this.getMovies(numFound)
+      this.getMovies(numFound, this.state.pageNumber)
       return
       }
       console.log("NEWDATA", numFound)
@@ -278,6 +298,10 @@ class Content extends Component {
                     if (!compareState[i].RT.includes("%")) compareState[i].RT = (compareState[i].RT.substr(0, 2) + "%")
                     compareState[i].loaded = ""
                     compareState[i].loadedfin = "d-flex"
+                    if (compareState[i].IMDB !== undefined && compareState[i].IMDB.substr(0, 3) < this.state.ratingFilter){
+                    compareState[i].loadedfin = "d-none"
+                    compareState[i].blurryCard = true
+                    }
                     this.setState({movieData: compareState});
                     break
                   } 
@@ -289,6 +313,10 @@ class Content extends Component {
                     if (!compareState[i].RT.includes("%")) compareState[i].RT = (compareState[i].RT.substr(0, 2) + "%")
                     compareState[i].loaded = ""
                     compareState[i].loadedfin = "d-flex"
+                    if (compareState[i].IMDB !== undefined && compareState[i].IMDB.substr(0, 3) < this.state.ratingFilter){
+                    compareState[i].loadedfin = "d-none"
+                    compareState[i].blurryCard = true
+                    }
                     this.setState({movieData: compareState});
                     break
                   }
@@ -307,7 +335,7 @@ class Content extends Component {
     }
 
     // console.log("FINISHED")
-    // If loading takes too long we stop the loading spinner.
+    // If can't find reviews we stop the loading spinner.
     setTimeout(() => { 
       var scrollHeight = document.getElementsByTagName("body")[0].scrollHeight
       this.setState({scrollHeight: scrollHeight});
@@ -334,10 +362,12 @@ class Content extends Component {
         this.setState({movieData: compareState2});
         }
 
+        if (this.state.ratingFilter !== 0) {
         compareState2 = this.state.movieData.filter(data => {
-          if (data.IMDB !== undefined) return data.IMDB.substr(0, 3) >= 6.8
+          if (data.IMDB !== undefined) return data.IMDB.substr(0, 3) >= this.state.ratingFilter
           }
           )
+        
 
           if (this.state.pageNumber >= 200) this.setState({hasMore: false});
           numFound = compareState2.length
@@ -345,10 +375,10 @@ class Content extends Component {
           if ((compareState2.length < 20) && (this.state.pageNumber < 200)){
             this.setState({movieData: compareState2});
             this.setState({pageNumber: this.state.pageNumber + 1});
-            this.getMovies(numFound)
+            this.getMovies(numFound, this.state.pageNumber)
             return
           }
-
+        }
           
           this.setState({movieData: compareState2});
         this.setState({isLoading: false});
@@ -441,18 +471,25 @@ class Content extends Component {
       pageNumber
     } = this.state;
 
+
     const theHTML = this.state.movieData.map((mov, i) => (
+
       <div className="card hvr-float" style={cardStyle}>
-       
       <RouterNavLink to={`/movie/${mov.id}`} exact className="nav-link-movie">
+      {mov.blurryCard &&
+      <img className="card-img-top blurryCard" src={`https://image.tmdb.org/t/p/w500/${mov.poster_path}`} alt="Card image cap" style={{borderRadius: '6px'}}></img>
+        }
+        {!mov.blurryCard &&
       <img className="card-img-top hideme" src={`https://image.tmdb.org/t/p/w500/${mov.poster_path}`} alt="Card image cap" style={{borderRadius: '6px'}}></img>
+        }
       </RouterNavLink>
       <div className="card-body" style={{marginLeft: '-10px'}}>
-      <RouterNavLink to={`/movie/${mov.id}`} exact className="nav-link-movie">
       <i className={mov.loaded} style={{color: 'gray'}}/>
         <div className={mov.loadedfin}>
           {/* <FontAwesomeIcon icon={faImdb} className="fa-lg"/>  */}
+        <a target="_blank" href={`https://www.imdb.com/title/${mov.imdbID}`} className="rate-float">
         {mov.RTimg && 
+        
         <img src={IMDBlogo} alt="IMDB" style={ratingStyle}></img>
         }
         {mov.RTimg && 
@@ -462,24 +499,17 @@ class Content extends Component {
         <img src={mov.RTimg} alt="Rotten Tomatoes" style={ratingStyle}></img>
         }
         {mov.RTimg && 
-        <span><b>{mov.RT}</b></span>
+        <span style={{textDecoration: 'none !important'}}><b>{mov.RT}</b></span>
         }
-        </div>
+        </a>
+        </div> 
+        <RouterNavLink to={`/movie/${mov.id}`} exact className="nav-link-movie">
         <h5 className="card-title" style={titleStyle}>{mov.title}</h5>
         <span>{mov.release_date} </span>
         </RouterNavLink>
-        {/* <RouterNavLink to={`http://localhost:9000/favroites/addfavorites/${this.state.user}&${mov.id}`} exact className="hvr-float">
-        <i className="fa fa-heart fa-3x" style={{color: 'yellow'}}/>
-        </RouterNavLink> */}
-        {/* {mov.IMDB !== undefined && mov.IMDB.substr(0, 3) >= 6.9 &&  */}
-        <i className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
+        <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
       </div >
       
-      
-      {/* <button className='button' onClick={() => this.handleClick(mov.id)}> */}
-      {/* <i className={mov.fav} style={{marginTop: '0'}} onClick={() => this.handleClick(mov.id)}/> */}
-    {/* Favorite
-  </button> */}
       </div>
       
       ))
@@ -490,7 +520,21 @@ class Content extends Component {
     return (
       
       <div className="next-steps">
-        <h5 className="pb-3 text-left font-weight-bold flex-row">Trending Movies</h5>
+        <h5 className="pb-3 text-left font-weight-bold flex-row">Trending Movies
+        <button class="btn btn-light btn-sm dropdown-toggle ml-5 rounded" type="button" id="dropdownMenuButton1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Filter IMDB Rating
+  </button>
+  <div  class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+    <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(8, e)}>8+</a>
+    <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(7, e)}>7+</a>
+    <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(6.5, e)}>6½+</a>
+    <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(6, e)}>6+</a>
+    <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(5.5, e)}>5½+</a>
+    <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(5, e)}>5+</a>
+  </div>
+        </h5>  
+        
+
         <Row className="d-flex">
           {/* {console.log("wow", this.state.movieData[1])} */}
           {theHTML}

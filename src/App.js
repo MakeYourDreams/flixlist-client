@@ -9,10 +9,12 @@ import Footer from "./components/Footer";
 import Home from "./views/Home";
 import Profile from "./views/Profile";
 import Weekly from "./views/Weekly";
-import Movie from "./views/Movie";
+import Favorites from "./components/Favorites";
+import {MovieContent} from './components/MovieContent';
+
 import { useAuth0 } from "./react-auth0-spa";
 import history from "./utils/history";
-import {MovieContent} from './components/MovieContent';
+
 // styles
 import "./App.css";
 import "./style.css";
@@ -37,6 +39,7 @@ const App = () => {
             <Route path="/" exact component={Home} />
             <Route path="/weekly" exact component={Weekly} />
             <Route path="/movie/:id" exact component={MovieContent} />
+            <PrivateRoute path="/favorites" exact component={Favorites} />
             {/* <Route path='/movie/:id' render={(props) => <MovieProduct {...props}/>}/> */}
             <PrivateRoute path="/profile" component={Profile} />
             <PrivateRoute path="/login" component={Home} />
