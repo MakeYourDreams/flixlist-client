@@ -35,9 +35,9 @@ export class MovieContent extends Component {
 
   
   componentDidMount() {
-    console.log(this.context.user.email)
-    console.log(this.props)
+    if (this.context.user !== undefined){
     this.setState({user: this.context.user.email});
+    }
     console.log(this.state)
     const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
     const v3Client = v3(v3ApiKey);
