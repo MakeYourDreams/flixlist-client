@@ -15,6 +15,8 @@ import {MovieContent} from './components/MovieContent';
 import { useAuth0 } from "./react-auth0-spa";
 import history from "./utils/history";
 
+
+
 // styles
 import "./App.css";
 import "./style.css";
@@ -42,7 +44,7 @@ const App = () => {
             <PrivateRoute path="/favorites" exact component={Favorites} />
             {/* <Route path='/movie/:id' render={(props) => <MovieProduct {...props}/>}/> */}
             <PrivateRoute path="/profile" component={Profile} />
-            <PrivateRoute path="/login" component={Home} />
+            <PrivateRoute path="/login" exact component={Home} />
           </Switch>
         </Container>
         <Footer />
