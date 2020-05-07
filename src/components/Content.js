@@ -169,7 +169,7 @@ class Content extends Component {
           }
         }, 500)
     } else {
-      window.location.href = "/login"
+      // window.location.href = "/login"
     }
     }
 
@@ -534,7 +534,14 @@ console.log(this.state.pageNumber, newData)
         <h5 className="card-title" style={titleStyle}>{mov.title}</h5>
         <span>{mov.release_date} </span>
         </RouterNavLink>
+        {!this.context.user &&
+        <RouterNavLink to={`/login`} exact className="hide-pointer">
         <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
+        </RouterNavLink>
+        }
+        {this.context.user &&
+        <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
+        }
       </div >
       
       </div>

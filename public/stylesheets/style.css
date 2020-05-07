@@ -53,6 +53,10 @@ body {
       pointer-events: none;
       cursor: default;
   }
+
+  .hide-pointer {
+    cursor: default;
+}
   
   .nav-hov-helper {
     -webkit-box-align: center;
