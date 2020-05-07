@@ -99,7 +99,7 @@ class Favorites extends Component {
                 console.log("FOUND MATCH 2", movID)
                 this.setState({movieData: compareState2});
     
-                axios.get('http://localhost:9000/favorites/removefavorites/' + this.context.user.email + '&' + movID)
+                axios.get(`${process.env.REACT_APP_API_URL}favorites/removefavorites/` + this.context.user.email + '&' + movID)
                 .then(response => {
                   console.log(response)
                   this.setState({userFavorites: response.data});
@@ -123,7 +123,7 @@ class Favorites extends Component {
               console.log("FOUND MATCH", movID)
               this.setState({movieData: compareState2});
   
-              axios.post('http://localhost:9000/favorites/addfavorites/' + this.context.user.email, compareState2[i])
+              axios.post(`${process.env.REACT_APP_API_URL}favorites/addfavorites/` + this.context.user.email, compareState2[i])
               .then(response => {
                 var compareState = this.state.userFavorites
                 compareState.push(movID)
@@ -148,7 +148,7 @@ class Favorites extends Component {
     this.setState({isLoading: true})
     console.log(this.state)
 
-    axios.get('http://localhost:9000/favorites/getfavorites/' + this.context.user.email)
+    axios.get(`${process.env.REACT_APP_API_URL}/favorites/getfavorites/` + this.context.user.email)
     .then(data => {
       
       this.setState({movieData: data.data});
