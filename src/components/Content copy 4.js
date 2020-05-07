@@ -130,7 +130,7 @@ class Content extends Component {
                 console.log("FOUND MATCH 2", movID)
                 this.setState({movieData: compareState2});
     
-                axios.get(`${process.env.REACT_APP_API_URL}/favorites/removefavorites/` + this.context.user.email + '&' + movID)
+                axios.get('http://localhost:9000/favorites/removefavorites/' + this.context.user.email + '&' + movID)
                 .then(response => {
                   console.log(response)
                   this.setState({userFavorites: response.data});
@@ -154,7 +154,7 @@ class Content extends Component {
               console.log("FOUND MATCH", movID)
               this.setState({movieData: compareState2});
   
-              axios.post(`${process.env.REACT_APP_API_URL}/favorites/addfavorites/` + this.context.user.email, compareState2[i])
+              axios.post('http://localhost:9000/favorites/addfavorites/' + this.context.user.email, compareState2[i])
               .then(response => {
                 var compareState = this.state.userFavorites
                 compareState.push(movID)
@@ -187,7 +187,7 @@ class Content extends Component {
     this.setState({isLoading: true})
     console.log(this.state)
     if (this.context.user !== undefined){
-    axios.get(`${process.env.REACT_APP_API_URL}/favorites/getfavorites/` + this.context.user.email)
+    axios.get('http://localhost:9000/favorites/getfavorites/' + this.context.user.email)
     .then(userFavorities => {
       // console.log("favvs", userFavorities.data);
       this.setState({userFavorites: userFavorities.data});
@@ -435,9 +435,6 @@ console.log(this.state.pageNumber, newData)
   }
 
   componentDidMount () {
-
-    // get filters call here
-
     this.getMovies(0)
   }
 
@@ -578,7 +575,6 @@ console.log(this.state.pageNumber, newData)
           <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2016, e)}>2016+</a>
           <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2015, e)}>2015+</a>
           <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2010, e)}>2010+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2010, e)}>2000+</a>
         </div>
         </div>
         </h5>  

@@ -130,7 +130,7 @@ class Content extends Component {
                 console.log("FOUND MATCH 2", movID)
                 this.setState({movieData: compareState2});
     
-                axios.get(`${process.env.REACT_APP_API_URL}/favorites/removefavorites/` + this.context.user.email + '&' + movID)
+                axios.get('http://localhost:9000/favorites/removefavorites/' + this.context.user.email + '&' + movID)
                 .then(response => {
                   console.log(response)
                   this.setState({userFavorites: response.data});
@@ -154,7 +154,7 @@ class Content extends Component {
               console.log("FOUND MATCH", movID)
               this.setState({movieData: compareState2});
   
-              axios.post(`${process.env.REACT_APP_API_URL}/favorites/addfavorites/` + this.context.user.email, compareState2[i])
+              axios.post('http://localhost:9000/favorites/addfavorites/' + this.context.user.email, compareState2[i])
               .then(response => {
                 var compareState = this.state.userFavorites
                 compareState.push(movID)
@@ -187,7 +187,7 @@ class Content extends Component {
     this.setState({isLoading: true})
     console.log(this.state)
     if (this.context.user !== undefined){
-    axios.get(`${process.env.REACT_APP_API_URL}/favorites/getfavorites/` + this.context.user.email)
+    axios.get('http://localhost:9000/favorites/getfavorites/' + this.context.user.email)
     .then(userFavorities => {
       // console.log("favvs", userFavorities.data);
       this.setState({userFavorites: userFavorities.data});
@@ -196,16 +196,16 @@ class Content extends Component {
     // console.log("favvs2", this.state.userFavorites)
     const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
     const v3Client = v3(v3ApiKey);
-    v3Client.movie.popular({
+    v3Client.tv.popular({
       page: pageNumber
     })
     .then((data) => {
-
+        console.log(data)
 
       //FILTER RESULTS
       var newData = data.results //if no filter
       var newData = data.results.filter(data => {
-        if (data.release_date !== undefined) return data.release_date.substr(0, 4) >= this.state.dateFilter;
+        if (data.first_air_date !== undefined) return data.first_air_date.substr(0, 4) >= this.state.dateFilter;
         }
         );
       data.results = newData
@@ -232,11 +232,11 @@ console.log(this.state.pageNumber, newData)
       for (const [i, v] of data.results.entries()) {
         // console.log("PAGE", this.state.pageNumber, v)
         if (i < ((data.results.length) - numFound)) continue
-        if (v.release_date === undefined) continue
-        if (!isNaN(v.release_date.substr(0, 4))) {
-        var d = new Date(v.release_date);
+        if (v.first_air_date === undefined) continue
+        if (!isNaN(v.first_air_date.substr(0, 4))) {
+        var d = new Date(v.first_air_date);
         d = d.toLocaleString('default', { month: 'short' })
-        data.results[i].release_date = d + ", " + v.release_date.substr(0, 4);
+        data.results[i].first_air_date = d + ", " + v.first_air_date.substr(0, 4);
         }
         if (!data.results[i].IMDB) {
         data.results[i].loaded = "fa fa-spinner fa-spin fa-lg";
@@ -256,11 +256,11 @@ console.log(this.state.pageNumber, newData)
       for (const [i, v] of data.results.entries()) {
         // console.log("PAGE", this.state.pageNumber, v)
         if (i < ((data.results.length) - numFound)) continue
-        if (v.release_date === undefined) continue
-        if (!isNaN(v.release_date.substr(0, 4))) {
-        var d = new Date(v.release_date);
+        if (v.first_air_date === undefined) continue
+        if (!isNaN(v.first_air_date.substr(0, 4))) {
+        var d = new Date(v.first_air_date);
         d = d.toLocaleString('default', { month: 'short' })
-        data.results[i].release_date = d + ", " + v.release_date.substr(0, 4);
+        data.results[i].first_air_date = d + ", " + v.first_air_date.substr(0, 4);
         }
         if (!data.results[i].IMDB) {
         data.results[i].loaded = "fa fa-spinner fa-spin fa-lg";
@@ -280,10 +280,10 @@ console.log(this.state.pageNumber, newData)
           "x-rapidapi-key": "1mAVi8jSwlmsh07ghuCUnNKdyw9ip15YyMJjsng8L9nsfQVPyn"
           },"params":{
           "page":"1",
-          "y":v.release_date.substr(5, 8),
+          "y":v.first_air_date.substr(5, 8),
           "r":"json",
-          "type":"movie",
-          "s":data.results[i].title
+          "type":"series",
+          "s":data.results[i].name
           }
           })
           .then((response)=>{
@@ -313,8 +313,8 @@ console.log(this.state.pageNumber, newData)
                 // }
                 for (const [i, v] of this.state.movieData.entries()) {
                   if (i < ((data.results.length) - numFound)) continue
-                  if (v.release_date === undefined) continue
-                  if (response2.data.Title == this.state.movieData[i].title) {
+                  if (v.first_air_date === undefined) continue
+                  if (response2.data.Title == this.state.movieData[i].name) {
                     var compareState = this.state.movieData
                     compareState[i].IMDB = response2.data.Ratings[0].Value
                     compareState[i].RT = response2.data.Ratings[1].Value
@@ -329,7 +329,7 @@ console.log(this.state.pageNumber, newData)
                     this.setState({movieData: compareState});
                     break
                   } 
-                  else if (response2.data.Title.substr(0, 9) == this.state.movieData[i].title.substr(0, 9)) {
+                  else if (response2.data.Title.substr(0, 9) == this.state.movieData[i].name.substr(0, 9)) {
                     var compareState = this.state.movieData
                     compareState[i].IMDB = response2.data.Ratings[0].Value
                     compareState[i].RT = response2.data.Ratings[1].Value
@@ -435,9 +435,6 @@ console.log(this.state.pageNumber, newData)
   }
 
   componentDidMount () {
-
-    // get filters call here
-
     this.getMovies(0)
   }
 
@@ -531,8 +528,8 @@ console.log(this.state.pageNumber, newData)
         </a>
         </div> 
         <RouterNavLink to={`/movie/${mov.id}`} exact className="nav-link-movie">
-        <h5 className="card-title" style={titleStyle}>{mov.title}</h5>
-        <span>{mov.release_date} </span>
+        <h5 className="card-title" style={titleStyle}>{mov.name}</h5>
+        <span>{mov.first_air_date} </span>
         </RouterNavLink>
         <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
       </div >
