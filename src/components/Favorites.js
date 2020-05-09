@@ -300,7 +300,7 @@ class Favorites extends Component {
           {theHTML}
           
         {!this.state.movieData[0] &&
-        <h5 style={{marginLeft: '15px'}}>No favorites yet! Add some by clicking the heart icons.</h5>
+        <h5 style={{marginLeft: '15px'}}>No favorites yet! Add favorites by clicking the heart icons.</h5>
         }
 
           {/* {isLoading &&

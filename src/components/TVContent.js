@@ -142,7 +142,9 @@ export class TVContent extends Component {
     .then((trailerData) => {
       var compareState = this.state.movieData
       compareState.youTube = trailerData.results[0].key
+      setTimeout(() => { 
       this.setState({movieData: compareState});
+      }, 300)
       console.log(this.state)
       console.log(trailerData)
     })

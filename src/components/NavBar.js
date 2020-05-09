@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { NavLink as RouterNavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import popcorn from "../assets/popcorn.png";
+import Flixlist from "../assets/Flixlist.png";
 
 import {
   Collapse,
@@ -37,6 +38,7 @@ const NavBar = () => {
       height: '2.75rem',
       backgroundRepeat: 'no-repeat',
       backgroundSize: 'cover',
+      marginTop: '3px'
   }
 
 
@@ -44,7 +46,9 @@ const NavBar = () => {
     <div className="nav-container">
       <Navbar className="navStyle" expand="md">
         <Container>
-          <NavbarBrand className="mb-4 mr-0" style={logoPopcorn} />
+          <a>
+          <NavbarBrand className="mb-4 mr-0" style={logoPopcorn} href="/" />
+          </a>
           <NavbarToggler onClick={toggle} />
           <Collapse isOpen={isOpen} navbar>
             <Nav className="mr-auto" navbar>
@@ -56,7 +60,8 @@ const NavBar = () => {
                   activeClassName=""
                   className="nav-hov-helper text-white font-weight-bold mb-4"
                 >
-                  Flixlist
+                  {/* Flixlist */}
+                  <img style={{marginTop: '-5px', marginLeft: '-4px'}} src={Flixlist} height="34px"></img>
                 </NavLink>
               </NavItem>
             </Nav>
