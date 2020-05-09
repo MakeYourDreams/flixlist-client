@@ -140,11 +140,11 @@ export class TVContent extends Component {
     });
     v3Client.tv.videos(this.props.match.params.id)
     .then((trailerData) => {
+      setTimeout(() => {
       var compareState = this.state.movieData
       compareState.youTube = trailerData.results[0].key
-      setTimeout(() => { 
       this.setState({movieData: compareState});
-      }, 300)
+      }, 400)
       console.log(this.state)
       console.log(trailerData)
     })
