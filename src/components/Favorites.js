@@ -299,7 +299,7 @@ class Favorites extends Component {
           {/* {console.log("wow", this.state.movieData[1])} */}
           {theHTML}
           
-        {this.state.movieData &&
+        {!this.state.movieData[0] &&
         <h5 style={{marginLeft: '15px'}}>No favorites yet! Add some by clicking the heart icons.</h5>
         }
 
