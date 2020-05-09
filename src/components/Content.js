@@ -463,8 +463,11 @@ console.log(this.state.pageNumber, newData)
         axios.get(`${process.env.REACT_APP_API_URL}/favorites/getfilters/` + this.context.user.email)
         .then(response => {
           console.log("FILTERS", response)
+          if (response.data.filter2) {
+            document.getElementById("dropdownMenuButton2").innerText = response.data.filter2 + " Oldest Year" 
+            this.setState({dateFilter: response.data.filter2});
+          }
           if (response.data.filter1) this.setRatingFilter(response.data.filter1, null)
-          if (response.data.filter2) this.setDateFilter(response.data.filter2, null)
           if (!response.data.filter1 && !response.data.filter2) this.getMovies(0)
       })
     }
