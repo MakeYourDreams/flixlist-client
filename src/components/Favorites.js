@@ -78,8 +78,11 @@ class Favorites extends Component {
   
 
   handleClick (movID, e) {
+    var compareState2 = this.state.movieData
+    compareState2[e].fav = "fa fa-spinner fa-spin setGray";
+    this.setState({movieData: compareState2});
 
-    e.target.classList = ("fa fa-spinner fa-spin setGray")
+    // e.target.className = ("fa fa-spinner fa-spin setGray")
     if (this.context.user !== undefined){
 
       var rawFavorites = JSON.stringify(this.state.movieData)
@@ -93,13 +96,14 @@ class Favorites extends Component {
               // compareState2[i].fav = "far fa-heart fa-2x favStyleNotActive";
               compareState2.splice(i, 1)
               setTimeout(() => { 
-              compareState2[i].fav = "fa fa-heart fa-2x favStyleActive";
+              // compareState2[i].fav = "fa fa-heart fa-2x favStyleActive";
               this.setState({movieData: compareState2});
+              this.getMovies(0)
               }, 600)
                 console.log("FOUND MATCH 2", movID)
                 this.setState({movieData: compareState2});
     
-                axios.get(`${process.env.REACT_APP_API_URL}favorites/removefavorites/` + this.context.user.email + '&' + movID)
+                axios.get(`${process.env.REACT_APP_API_URL}/favorites/removefavorites/` + this.context.user.email + '&' + movID)
                 .then(response => {
                   console.log(response)
                   this.setState({userFavorites: response.data});
@@ -113,6 +117,7 @@ class Favorites extends Component {
 
       return
     }
+    return
 
         setTimeout(() => { 
         for (const [i, v] of this.state.movieData.entries()) {
@@ -223,10 +228,16 @@ class Favorites extends Component {
 
     const theHTML = this.state.movieData.map((mov, i) => (
       <div className="card hvr-float" style={cardStyle}>
-       
+       {mov.title &&
       <RouterNavLink to={`/movie/${mov.id}`} exact className="nav-link-movie">
       <img className="card-img-top hideme" src={`https://image.tmdb.org/t/p/w500/${mov.poster_path}`} alt="Card image cap" style={{borderRadius: '6px'}}></img>
       </RouterNavLink>
+       }
+       {mov.name &&
+      <RouterNavLink to={`/tv/${mov.id}`} exact className="nav-link-movie">
+      <img className="card-img-top hideme" src={`https://image.tmdb.org/t/p/w500/${mov.poster_path}`} alt="Card image cap" style={{borderRadius: '6px'}}></img>
+      </RouterNavLink>
+       }       
       <div className="card-body hideme" style={{marginLeft: '-10px'}}>
       {/* <i className={mov.loaded} style={{color: 'gray'}}/> */}
         <div className="d-flex">
@@ -249,15 +260,23 @@ class Favorites extends Component {
         }
         </a>
         </div>
+        {mov.title &&
         <RouterNavLink to={`/movie/${mov.id}`} exact className="nav-link-movie">
-        <h5 className="card-title" style={titleStyle}>{mov.title}</h5>
-        <span>{mov.release_date} </span>
+        <h5 className="card-title" style={titleStyle}>{mov.title}{mov.name}</h5>
+        <span>{mov.release_date} {mov.first_air_date}</span>
         </RouterNavLink>
+        }
+         {mov.name &&
+        <RouterNavLink to={`/tv/${mov.id}`} exact className="nav-link-movie">
+        <h5 className="card-title" style={titleStyle}>{mov.title}{mov.name}</h5>
+        <span>{mov.release_date} {mov.first_air_date}</span>
+        </RouterNavLink>
+        }       
         {/* <RouterNavLink to={`http://localhost:9000/favroites/addfavorites/${this.state.user}&${mov.id}`} exact className="hvr-float">
         <i className="fa fa-heart fa-3x" style={{color: 'yellow'}}/>
         </RouterNavLink> */}
         {/* {mov.IMDB !== undefined && mov.IMDB.substr(0, 3) >= 6.9 &&  */}
-        <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
+        <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, i)}/>
       </div >
       
       

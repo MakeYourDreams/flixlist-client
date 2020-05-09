@@ -48,7 +48,7 @@ body {
     }
 
     .router-link-exact-active-new {
-      border-bottom: 2px solid #ffffffc5;
+      border-bottom: 2px solid #ffffffce;
       border-radius: 3px;
       pointer-events: none;
       cursor: default;
@@ -62,7 +62,7 @@ body {
     -webkit-box-align: center;
     align-items: center !important;
     display: flex;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.1px;
     position: relative;
     text-decoration: none;
   height: 25px;
@@ -132,8 +132,6 @@ body {
       white-space: normal !important; 
       text-overflow: initial !important;
     }
-
-
 
     .setGray {
       color: rgb(100, 100, 100);

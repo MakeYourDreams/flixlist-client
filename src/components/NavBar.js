@@ -71,11 +71,27 @@ const NavBar = () => {
                   style={{fontSize: '0.955rem'}}
                 >
                   <div className="nav-hov-helper">
-                  <span className="">Trending</span>
+                  <span className="">Trending Movies</span>
                   </div>
                 </NavLink>
                 </NavItem>
               </Nav>
+              <Nav className="d-none d-md-block" navbar>
+                <NavItem>
+                <NavLink
+                  tag={RouterNavLink}
+                  to="/tv"
+                  exact
+                  activeClassName="router-link-exact-active-new"
+                  className="text-white mb-3 font-weight-light nav-hov"
+                  style={{fontSize: '0.955rem'}}
+                >
+                  <div className="nav-hov-helper">
+                  <span className="">Trending Shows</span>
+                  </div>
+                </NavLink>
+                </NavItem>
+              </Nav>             
             <Nav className="d-none d-md-block" navbar>
                 <NavItem>
                 <NavLink

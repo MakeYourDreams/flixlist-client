@@ -15,7 +15,7 @@ import goodTomato from "../assets/goodTomato.png";
 import { Auth0Context } from "../react-auth0-spa";
 
 
-export class MovieContent extends Component {
+export class TVContent extends Component {
   static contextType = Auth0Context
   
   constructor(props) {
@@ -41,14 +41,14 @@ export class MovieContent extends Component {
     console.log(this.state)
     const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
     const v3Client = v3(v3ApiKey);
-    v3Client.movie.details(this.props.match.params.id)
+    v3Client.tv.details(this.props.match.params.id)
     .then((data) => {
       // console.log(data)
       this.setState({movieData: data});
 
-        var d = new Date(data.release_date);
+        var d = new Date(data.first_air_date);
         d = d.toLocaleString('default', { month: 'short' })
-        data.release_date = d + ", " + data.release_date.substr(0, 4);
+        data.first_air_date = d + ", " + data.first_air_date.substr(0, 4);
         data.loaded = "fa fa-spinner fa-spin fa-lg";
         data.loadedfin = "d-none";
         this.setState({movieData: data});
@@ -62,10 +62,10 @@ export class MovieContent extends Component {
           "x-rapidapi-key": "d1fa5ad8abmshb72575fba792b52p101767jsn5710fbc7a526"
           },"params":{
           "page":"1",
-          "y":data.release_date.substr(0, 3),
+          "y":data.first_air_date.substr(0, 3),
           "r":"json",
-          "type":"movie",
-          "s":data.title
+          "type":"series",
+          "s":data.name
           }
           })
           .then((response)=>{
@@ -89,7 +89,7 @@ export class MovieContent extends Component {
                 // console.log("grr", response2)
                 // this.setState({ ratingData: this.state.ratingData.concat('-') });
                 // }
-                  if (response2.data.Title == this.state.movieData.title) {
+                  if (response2.data.Title == this.state.movieData.name) {
                     var compareState = this.state.movieData
                     compareState.IMDB = response2.data.Ratings[0].Value
                     compareState.RT = response2.data.Ratings[1].Value
@@ -97,7 +97,7 @@ export class MovieContent extends Component {
                     compareState.loaded = ""
                     compareState.loadedfin = "d-flex"
                     this.setState({movieData: compareState});
-                  } else if (response2.data.Title.substr(0, 3)== this.state.movieData.title.substr(0, 3)) {
+                  } else if (response2.data.Title.substr(0, 3)== this.state.movieData.name.substr(0, 3)) {
                     var compareState = this.state.movieData
                     compareState.IMDB = response2.data.Ratings[0].Value
                     compareState.RT = response2.data.Ratings[1].Value
@@ -120,6 +120,7 @@ export class MovieContent extends Component {
     // console.log("FINISHED")
     // If loading takes too long we stop the loading spinner
     setTimeout(() => { 
+      console.log(this.state.movieData)
         var compareState2 = this.state.movieData
         if (this.state.movieData.IMDB == undefined) compareState2.IMDB = "~";
         if (this.state.movieData.RT == undefined) {
@@ -137,7 +138,7 @@ export class MovieContent extends Component {
     .catch((error) => {
       console.log('error: ', error);
     });
-    v3Client.movie.videos(this.props.match.params.id)
+    v3Client.tv.videos(this.props.match.params.id)
     .then((trailerData) => {
       var compareState = this.state.movieData
       compareState.youTube = trailerData.results[0].key
@@ -233,15 +234,20 @@ return (
         <span><b>{mov.RT}</b></span>
         </a>
         </div>
-        <h5 className="card-title" style={titleStyle}><b>{mov.title}</b></h5>
-        <span>{mov.release_date}</span>
+        <h5 className="card-title" style={titleStyle}><b>{mov.name}</b></h5>
+        <span>{mov.first_air_date}</span>
         <br></br>
-        <p style={{marginTop: '10px'}}><i>{mov.tagline}</i></p>
+        {mov.number_of_seasons == 1 &&
+        <p style={{marginTop: '10px'}}><i>{mov.number_of_seasons} Season</i></p>
+        }
+        {mov.number_of_seasons > 1 &&
+        <p style={{marginTop: '10px'}}><i>{mov.number_of_seasons} Seasons</i></p>
+        }
       </div >
        
       </div>
       <div className="" style={descriptionStyle}>
-      <h2 className="">{mov.title}</h2>
+      <h2 className="">{mov.name}</h2>
         {mov.overview}
         <div>
         <object style={{width: '100%', height: '400px', padding: '20px' }} data={`https://www.youtube.com/embed/${mov.youTube}`}></object>
@@ -255,4 +261,4 @@ return (
   }
 }
 
-export default MovieContent;
+export default TVContent;

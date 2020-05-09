@@ -21,7 +21,7 @@ import goodTomato from "../assets/goodTomato.png";
 import debounce from "lodash.debounce";
 
 
-class Content extends Component {
+class ContentTv extends Component {
   static contextType = Auth0Context
 
 
@@ -79,6 +79,8 @@ class Content extends Component {
 
   
   setDateFilter (dateFilter, e) {
+    if (e !== undefined && dateFilter !== 0) document.getElementById("dropdownMenuButton2").innerText = dateFilter + " Oldest Year" 
+    if (e !== undefined && dateFilter == 0) document.getElementById("dropdownMenuButton2").innerText = "Oldest Year" 
     if (this.state.isLoading == true) {
       setTimeout(() => { 
         this.setDateFilter(dateFilter)
@@ -91,12 +93,19 @@ class Content extends Component {
     this.setState({movieData: []});
     this.setState({scrollHeight: 9999});
 
+    if (this.context.user !== undefined){
+      axios.get(`${process.env.REACT_APP_API_URL}/favorites/addfilters/` + this.context.user.email + '&' + this.state.ratingFilter + '&' + dateFilter)
+      .then(response => {
+        console.log("FILTERS", response)
+    })
+  }
+
     this.getMovies(0, 1)
   }
 
   
   setRatingFilter (filterRating, e) {
-    if (e !== undefined && filterRating !== 0) document.getElementById("dropdownMenuButton1").innerText = e.target.innerText + " IMDB Ratings" 
+    if (e !== undefined && filterRating !== 0) document.getElementById("dropdownMenuButton1").innerText = filterRating + " ✰ IMDB Ratings" 
     if (e !== undefined && filterRating == 0) document.getElementById("dropdownMenuButton1").innerText = "IMDB Ratings" 
     if (this.state.isLoading == true) {
       setTimeout(() => { 
@@ -109,6 +118,13 @@ class Content extends Component {
     // this.setState({isLoading: false})
     this.setState({movieData: []});
     this.setState({scrollHeight: 9999});
+
+    if (this.context.user !== undefined){
+      axios.get(`${process.env.REACT_APP_API_URL}/favorites/addfilters/` + this.context.user.email + '&' + filterRating + '&' + this.state.dateFilter)
+      .then(response => {
+        console.log("FILTERS", response)
+    })
+  }
 
     this.getMovies(0, 1)
   }
@@ -169,12 +185,14 @@ class Content extends Component {
           }
         }, 500)
     } else {
-      window.location.href = "/login"
+      // window.location.href = "/login"
     }
     }
 
 
   getMovies(numFound, pageNumber) {
+
+    if (window.location.pathname !== "/tv") return //prevent infinite loading
 
     if (this.state.isLoading == true && numFound >= 20) {
       // setTimeout(() => {  
@@ -200,7 +218,7 @@ class Content extends Component {
       page: pageNumber
     })
     .then((data) => {
-        console.log(data)
+
 
       //FILTER RESULTS
       var newData = data.results //if no filter
@@ -220,6 +238,7 @@ console.log(this.state.pageNumber, newData)
         data.results = savePageMovies.concat(data.results) 
         this.setState({movieData: data.results});
         console.log("NEXT PAGE", data.results)
+        if ((data.results[20]) && (data.results[0].id == data.results[20].id)) return //prevent infinite loading
       }
 
       
@@ -277,7 +296,7 @@ console.log(this.state.pageNumber, newData)
           "headers":{
           "content-type":"application/octet-stream",
           "x-rapidapi-host":"movie-database-imdb-alternative.p.rapidapi.com",
-          "x-rapidapi-key": "1mAVi8jSwlmsh07ghuCUnNKdyw9ip15YyMJjsng8L9nsfQVPyn"
+          "x-rapidapi-key": "d1fa5ad8abmshb72575fba792b52p101767jsn5710fbc7a526"
           },"params":{
           "page":"1",
           "y":v.first_air_date.substr(5, 8),
@@ -296,7 +315,7 @@ console.log(this.state.pageNumber, newData)
                 "headers":{
                 "content-type":"application/octet-stream",
                 "x-rapidapi-host":"movie-database-imdb-alternative.p.rapidapi.com",
-                "x-rapidapi-key": "1mAVi8jSwlmsh07ghuCUnNKdyw9ip15YyMJjsng8L9nsfQVPyn"
+                "x-rapidapi-key": "d1fa5ad8abmshb72575fba792b52p101767jsn5710fbc7a526"
                 },"params":{
                 "i":response.data.Search[0].imdbID,
                 "r":"json"
@@ -435,7 +454,21 @@ console.log(this.state.pageNumber, newData)
   }
 
   componentDidMount () {
-    this.getMovies(0)
+
+    // get filters call here
+    if (this.context.user !== undefined){
+        axios.get(`${process.env.REACT_APP_API_URL}/favorites/getfilters/` + this.context.user.email)
+        .then(response => {
+          console.log("FILTERS", response)
+          if (response.data.filter1) this.setRatingFilter(response.data.filter1, null)
+          if (response.data.filter2) this.setDateFilter(response.data.filter2, null)
+          if (!response.data.filter1 && !response.data.filter2) this.getMovies(0)
+      })
+    }
+
+    if (this.context.user == undefined){
+      this.getMovies(0)
+      }
   }
 
   
@@ -499,7 +532,7 @@ console.log(this.state.pageNumber, newData)
     const theHTML = this.state.movieData.map((mov, i) => (
 
       <div className="card hvr-float" style={cardStyle}>
-      <RouterNavLink to={`/movie/${mov.id}`} exact className="nav-link-movie">
+      <RouterNavLink to={`/tv/${mov.id}`} exact className="nav-link-movie">
       {mov.blurryCard &&
       <img className="card-img-top blurryCard" src={`https://image.tmdb.org/t/p/w500/${mov.poster_path}`} alt="Card image cap" style={{borderRadius: '6px'}}></img>
         }
@@ -527,11 +560,18 @@ console.log(this.state.pageNumber, newData)
         }
         </a>
         </div> 
-        <RouterNavLink to={`/movie/${mov.id}`} exact className="nav-link-movie">
+        <RouterNavLink to={`/tv/${mov.id}`} exact className="nav-link-movie">
         <h5 className="card-title" style={titleStyle}>{mov.name}</h5>
         <span>{mov.first_air_date} </span>
         </RouterNavLink>
+        {!this.context.user &&
+        <RouterNavLink to={`/login`} exact className="hide-pointer">
         <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
+        </RouterNavLink>
+        }
+        {this.context.user &&
+        <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
+        }
       </div >
       
       </div>
@@ -544,7 +584,7 @@ console.log(this.state.pageNumber, newData)
     return (
       
       <div className="next-steps">
-        <h5 className="pb-3 text-left font-weight-bold flex-row">Trending Movies
+        <h5 className="pb-3 text-left font-weight-bold flex-row">Trending Shows
         <button class="btn btn-light btn-sm dropdown-toggle ml-5 rounded" type="button" id="dropdownMenuButton1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         IMDB Ratings
         </button>
@@ -565,17 +605,17 @@ console.log(this.state.pageNumber, newData)
         </button>
         
         <div  class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
-          {this.state.ratingFilter !== 0 && 
-          <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(0, e)}><b>Remove Filter</b></a>
+          {this.state.dateFilter !== 0 && 
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(0, e)}><b>Remove Filter</b></a>
           }
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2020, e)}>2020+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2019, e)}>2019+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2018, e)}>2018+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2017, e)}>2017+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2016, e)}>2016+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2015, e)}>2015+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2010, e)}>2010+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2010, e)}>2000+</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2020, e)}>2020</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2019, e)}>2019</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2018, e)}>2018</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2017, e)}>2017</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2016, e)}>2016</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2015, e)}>2015</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2010, e)}>2010</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2010, e)}>2000</a>
         </div>
         </div>
         </h5>  
@@ -600,4 +640,4 @@ console.log(this.state.pageNumber, newData)
   }
 }
 
-export default Content;
+export default ContentTv;

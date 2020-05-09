@@ -11,6 +11,8 @@ import Profile from "./views/Profile";
 import Weekly from "./views/Weekly";
 import Favorites from "./components/Favorites";
 import {MovieContent} from './components/MovieContent';
+import {TVContent} from './components/TVContent';
+import ContentTv from './components/ContentTv';
 
 import { useAuth0 } from "./react-auth0-spa";
 import history from "./utils/history";
@@ -39,8 +41,10 @@ const App = () => {
         <Container className="flex-grow-1 mt-5">
           <Switch>
             <Route path="/" exact component={Home} />
+            <Route path="/tv" exact component={ContentTv} />
             <Route path="/weekly" exact component={Weekly} />
             <Route path="/movie/:id" exact component={MovieContent} />
+            <Route path="/tv/:id" exact component={TVContent} />
             <PrivateRoute path="/favorites" exact component={Favorites} />
             {/* <Route path='/movie/:id' render={(props) => <MovieProduct {...props}/>}/> */}
             <PrivateRoute path="/profile" component={Profile} />
