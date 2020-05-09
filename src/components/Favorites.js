@@ -299,6 +299,10 @@ class Favorites extends Component {
           {/* {console.log("wow", this.state.movieData[1])} */}
           {theHTML}
           
+        {this.state.movieData &&
+        <h5 style={{marginLeft: '15px'}}>No favorites yet! Add some by clicking the heart icons.</h5>
+        }
+
           {/* {isLoading &&
           <span style={{marginTop: '10px'}}>Loading...<i className="fa fa-spinner fa-spin fa-3x"/></span>
         }
