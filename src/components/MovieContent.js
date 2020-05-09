@@ -205,8 +205,8 @@ export class MovieContent extends Component {
       backgroundImage: `url(https://image.tmdb.org/t/p/original` + mov.backdrop_path + `)`,
       backgroundSize: '100%', 
       backgroundRepeat: 'no-repeat',
-      borderRadius: '100px',
-      boxShadow: 'inset 0px 0px 277px 40px #060200'
+      borderRadius: '10px',
+      boxShadow: 'rgb(0, 14, 28) 0px 0px 350px 100px inset'
     }
     
     // const { loaded } = this.state;
@@ -246,7 +246,7 @@ return (
       <h2 className="">{mov.title}</h2>
         {mov.overview}
         <div>
-        <object style={{width: '100%', height: '400px', padding: '20px' }} data={`https://www.youtube.com/embed/${mov.youTube}`}></object>
+        <object style={{width: '100%', height: '400px', padding: '20px' }} data={`https://www.youtube.com/embed/${mov.youTube}?autoplay=1&color=white`}></object>
       </div>
       </div>
 

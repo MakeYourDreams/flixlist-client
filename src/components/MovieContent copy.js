@@ -6,7 +6,7 @@ import '../../node_modules/@fortawesome/fontawesome-free/css/brands.css'
 import contentData from "../utils/contentData";
 import axios from 'axios';
 import { v3, v4 } from "@leonardocabeza/the-movie-db";
-
+import { NavLink as RouterNavLink } from "react-router-dom";
 import '../style.css'
 import IMDBlogo from "../assets/IMDBlogo.png";
 import tomato from "../assets/tomato.png";
@@ -15,7 +15,7 @@ import goodTomato from "../assets/goodTomato.png";
 import { Auth0Context } from "../react-auth0-spa";
 
 
-export class TVContent extends Component {
+export class MovieContent extends Component {
   static contextType = Auth0Context
   
   constructor(props) {
@@ -27,28 +27,105 @@ export class TVContent extends Component {
       movieData: [],
       ratingData: [],
       ratingData2: [],
+      userFavorites: [],
       user: ""
     };
 
     this.codeNode = React.createRef();
   }
 
+  handleClick (movID, e) {
+
+    e.target.classList = ("fa fa-spinner fa-spin setGray")
+    if (this.context.user !== undefined){
+
+      var rawFavorites = JSON.stringify(this.state.userFavorites)
+
+      if (rawFavorites.includes(movID)) {
+        setTimeout(() => { 
+          for (const [i, v] of this.state.movieData.entries()) {
+            
+            if (movID == this.state.movieData[i].id) {
+              var compareState2 = this.state.movieData
+              compareState2[i].fav = "far fa-heart fa-2x favStyleNotActive";
+                console.log("FOUND MATCH 2", movID)
+                this.setState({movieData: compareState2});
+    
+                axios.get(`${process.env.REACT_APP_API_URL}/favorites/removefavorites/` + this.context.user.email + '&' + movID)
+                .then(response => {
+                  console.log(response)
+                  this.setState({userFavorites: response.data});
+                  console.log(this.state)
+        
+              })
+                break
+              } 
+            }
+          }, 400)
+
+      return
+    }
+
+        setTimeout(() => { 
+        for (const [i, v] of this.state.movieData.entries()) {
+          
+          if (movID == this.state.movieData[i].id) {
+            var compareState2 = this.state.movieData
+            compareState2[i].fav = "fa fa-heart fa-2x favStyleActive";
+              console.log("FOUND MATCH", movID)
+              this.setState({movieData: compareState2});
+  
+              axios.post(`${process.env.REACT_APP_API_URL}/favorites/addfavorites/` + this.context.user.email, compareState2[i])
+              .then(response => {
+                var compareState = this.state.userFavorites
+                compareState.push(movID)
+                this.setState({userFavorites: compareState});
+                console.log(response)
+                console.log(this.state)
+              })
+  
+              break
+          }
+          
+          }
+        }, 500)
+    } else {
+      // window.location.href = "/login"
+    }
+    }
+
   
   componentDidMount() {
+
+
+
     if (this.context.user !== undefined){
     this.setState({user: this.context.user.email});
     }
     console.log(this.state)
     const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
     const v3Client = v3(v3ApiKey);
-    v3Client.tv.details(this.props.match.params.id)
+    v3Client.movie.details(this.props.match.params.id)
     .then((data) => {
       // console.log(data)
+      if (this.context.user !== undefined){
+        axios.get(`${process.env.REACT_APP_API_URL}/favorites/getfavorites/` + this.context.user.email)
+        .then(userFavorites => {
+          data.fav = "far fa-heart fa-2x favStyleActive";
+          var rawFavorites = JSON.stringify(userFavorites)
+          if (rawFavorites.includes(this.props.match.params.id)){
+          this.setState({userFavorites: userFavorites});
+          } else {
+            data.fav = "far fa-heart fa-2x favStyleNotActive";
+          }
+        })
+      }
+      data.fav = "far fa-heart fa-2x favStyleNotActive";
       this.setState({movieData: data});
 
-        var d = new Date(data.first_air_date);
+        var d = new Date(data.release_date);
         d = d.toLocaleString('default', { month: 'short' })
-        data.first_air_date = d + ", " + data.first_air_date.substr(0, 4);
+        data.release_date = d + ", " + data.release_date.substr(0, 4);
         data.loaded = "fa fa-spinner fa-spin fa-lg";
         data.loadedfin = "d-none";
         this.setState({movieData: data});
@@ -62,10 +139,10 @@ export class TVContent extends Component {
           "x-rapidapi-key": "d1fa5ad8abmshb72575fba792b52p101767jsn5710fbc7a526"
           },"params":{
           "page":"1",
-          "y":data.first_air_date.substr(0, 3),
+          "y":data.release_date.substr(0, 3),
           "r":"json",
-          "type":"series",
-          "s":data.name
+          "type":"movie",
+          "s":data.title
           }
           })
           .then((response)=>{
@@ -89,7 +166,7 @@ export class TVContent extends Component {
                 // console.log("grr", response2)
                 // this.setState({ ratingData: this.state.ratingData.concat('-') });
                 // }
-                  if (response2.data.Title == this.state.movieData.name) {
+                  if (response2.data.Title == this.state.movieData.title) {
                     var compareState = this.state.movieData
                     compareState.IMDB = response2.data.Ratings[0].Value
                     compareState.RT = response2.data.Ratings[1].Value
@@ -97,7 +174,7 @@ export class TVContent extends Component {
                     compareState.loaded = ""
                     compareState.loadedfin = "d-flex"
                     this.setState({movieData: compareState});
-                  } else if (response2.data.Title.substr(0, 3)== this.state.movieData.name.substr(0, 3)) {
+                  } else if (response2.data.Title.substr(0, 3)== this.state.movieData.title.substr(0, 3)) {
                     var compareState = this.state.movieData
                     compareState.IMDB = response2.data.Ratings[0].Value
                     compareState.RT = response2.data.Ratings[1].Value
@@ -120,7 +197,6 @@ export class TVContent extends Component {
     // console.log("FINISHED")
     // If loading takes too long we stop the loading spinner
     setTimeout(() => { 
-      console.log(this.state.movieData)
         var compareState2 = this.state.movieData
         if (this.state.movieData.IMDB == undefined) compareState2.IMDB = "~";
         if (this.state.movieData.RT == undefined) {
@@ -138,15 +214,15 @@ export class TVContent extends Component {
     .catch((error) => {
       console.log('error: ', error);
     });
-    v3Client.tv.videos(this.props.match.params.id)
+    v3Client.movie.videos(this.props.match.params.id)
     .then((trailerData) => {
-      setTimeout(() => {
+      setTimeout(() => { 
       var compareState = this.state.movieData
       compareState.youTube = trailerData.results[0].key
       this.setState({movieData: compareState});
-      }, 400)
       console.log(this.state)
       console.log(trailerData)
+      }, 400)
     })
     .catch((error) => {
       console.log('error: ', error);
@@ -207,9 +283,19 @@ export class TVContent extends Component {
       backgroundSize: '100%', 
       backgroundRepeat: 'no-repeat',
       borderRadius: '10px',
-      boxShadow: 'rgb(0, 14, 28) 0px 0px 350px 100px inset'
+      boxShadow: 'rgb(8, 22, 35) 0px 0px 250px 90px inset'
     }
     
+    const favStyle = {
+      // position: 'absolute', 
+      // right: '42px',
+      marginLeft: '38px',
+      fontSize: '1.6rem',
+      // width: '100%', 
+      // textAlign: 'right',
+      zIndex: '99',
+      // position: 'absolute'
+    };
     // const { loaded } = this.state;
 
     // if (!loaded) {
@@ -221,7 +307,7 @@ export class TVContent extends Component {
 return (
 
   <div className="opacityBackground" style={backgroundStyle} >
-    <Row className="d-flex">
+    <Row className="d-flex backgroundFade">
       {/* {console.log("wow", this.state.movieData[1])} */}
       <div className="card" style={cardStyle}>
       <img className="card-img-top" src={`https://image.tmdb.org/t/p/w500/${mov.poster_path}`} alt="Card image cap" style={{borderRadius: '6px', borderTopLeftRadius: '30px', borderTopRightRadius: '30px'}}></img> 
@@ -236,20 +322,23 @@ return (
         <span><b>{mov.RT}</b></span>
         </a>
         </div>
-        <h5 className="card-title" style={titleStyle}><b>{mov.name}</b></h5>
-        <span>{mov.first_air_date}</span>
+        <h5 className="card-title" style={titleStyle}><b>{mov.title}</b></h5>
+        <span>{mov.release_date}</span>
+        {!this.context.user &&
+        <RouterNavLink to={`/login`} exact className="hide-pointer">
+        <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
+        </RouterNavLink>
+        }
+        {this.context.user &&
+        <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
+        }
         <br></br>
-        {mov.number_of_seasons == 1 &&
-        <p style={{marginTop: '10px'}}><i>{mov.number_of_seasons} Season</i></p>
-        }
-        {mov.number_of_seasons > 1 &&
-        <p style={{marginTop: '10px'}}><i>{mov.number_of_seasons} Seasons</i></p>
-        }
+        <p style={{marginTop: '10px'}}><i>{mov.tagline}</i></p>
       </div >
        
       </div>
       <div className="" style={descriptionStyle}>
-      <h2 className="">{mov.name}</h2>
+      <h2 className="">{mov.title}</h2>
         {mov.overview}
         <div>
         <object style={{width: '100%', height: '400px', padding: '20px' }} data={`https://www.youtube.com/embed/${mov.youTube}?autoplay=1&color=white`}></object>
@@ -263,4 +352,4 @@ return (
   }
 }
 
-export default TVContent;
+export default MovieContent;
