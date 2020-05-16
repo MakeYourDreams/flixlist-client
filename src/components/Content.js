@@ -189,9 +189,7 @@ class Content extends Component {
     }
     }
 
-componentWillUnmount() {
-  console.log("UNMOUNTINGGGG")
-}
+
 
   getMovies(numFound, pageNumber) {
     
@@ -215,7 +213,7 @@ componentWillUnmount() {
     })
   }
     // console.log("favvs2", this.state.userFavorites)
-    const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
+    const v3ApiKey = process.env.REACT_APP_MOVIEDB
     const v3Client = v3(v3ApiKey);
     v3Client.movie.popular({
       page: pageNumber
@@ -299,7 +297,7 @@ console.log(this.state.pageNumber, newData)
           "headers":{
           "content-type":"application/octet-stream",
           "x-rapidapi-host":"movie-database-imdb-alternative.p.rapidapi.com",
-          "x-rapidapi-key": "d1fa5ad8abmshb72575fba792b52p101767jsn5710fbc7a526"
+          "x-rapidapi-key": process.env.REACT_APP_RAPIDAPI
           },"params":{
           "page":"1",
           "y":v.release_date.substr(5, 8),
@@ -318,7 +316,7 @@ console.log(this.state.pageNumber, newData)
                 "headers":{
                 "content-type":"application/octet-stream",
                 "x-rapidapi-host":"movie-database-imdb-alternative.p.rapidapi.com",
-                "x-rapidapi-key": "d1fa5ad8abmshb72575fba792b52p101767jsn5710fbc7a526"
+                "x-rapidapi-key": process.env.REACT_APP_RAPIDAPI
                 },"params":{
                 "i":response.data.Search[0].imdbID,
                 "r":"json"
@@ -624,6 +622,9 @@ console.log(this.state.pageNumber, newData)
           <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2010, e)}>2000</a>
         </div>
         </div>
+        <RouterNavLink to={`/toprated`} exact className="nav-link-movie">
+        <button class="btn btn-light btn-sm ml-5 rounded" type="button">Top Rated</button>
+        </RouterNavLink>
         </h5>  
         
 

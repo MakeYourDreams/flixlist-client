@@ -39,7 +39,7 @@ export class MovieContent extends Component {
     this.setState({user: this.context.user.email});
     }
     console.log(this.state)
-    const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
+    const v3ApiKey = process.env.REACT_APP_MOVIEDB    
     const v3Client = v3(v3ApiKey);
     v3Client.movie.details(this.props.match.params.id)
     .then((data) => {
@@ -59,7 +59,7 @@ export class MovieContent extends Component {
           "headers":{
           "content-type":"application/octet-stream",
           "x-rapidapi-host":"movie-database-imdb-alternative.p.rapidapi.com",
-          "x-rapidapi-key": "d1fa5ad8abmshb72575fba792b52p101767jsn5710fbc7a526"
+          "x-rapidapi-key": process.env.REACT_APP_RAPIDAPI
           },"params":{
           "page":"1",
           "y":data.release_date.substr(0, 3),
@@ -75,7 +75,7 @@ export class MovieContent extends Component {
                 "headers":{
                 "content-type":"application/octet-stream",
                 "x-rapidapi-host":"movie-database-imdb-alternative.p.rapidapi.com",
-                "x-rapidapi-key": "d1fa5ad8abmshb72575fba792b52p101767jsn5710fbc7a526"
+                "x-rapidapi-key": process.env.REACT_APP_RAPIDAPI
                 },"params":{
                 "i":response.data.Search[0].imdbID,
                 "r":"json"

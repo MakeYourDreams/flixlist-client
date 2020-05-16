@@ -21,7 +21,7 @@ import goodTomato from "../assets/goodTomato.png";
 import debounce from "lodash.debounce";
 
 
-class Content extends Component {
+class ContentTopRated extends Component {
   static contextType = Auth0Context
 
 
@@ -79,6 +79,8 @@ class Content extends Component {
 
   
   setDateFilter (dateFilter, e) {
+    if (e !== undefined && dateFilter !== 0) document.getElementById("dropdownMenuButton2").innerText = dateFilter + " Oldest Year" 
+    if (e !== undefined && dateFilter == 0) document.getElementById("dropdownMenuButton2").innerText = "Oldest Year" 
     if (this.state.isLoading == true) {
       setTimeout(() => { 
         this.setDateFilter(dateFilter)
@@ -91,12 +93,19 @@ class Content extends Component {
     this.setState({movieData: []});
     this.setState({scrollHeight: 9999});
 
+    if (this.context.user !== undefined){
+      axios.get(`${process.env.REACT_APP_API_URL}/favorites/addfilters/` + this.context.user.email + '&' + this.state.ratingFilter + '&' + dateFilter)
+      .then(response => {
+        console.log("FILTERS", response)
+    })
+  }
+
     this.getMovies(0, 1)
   }
 
   
   setRatingFilter (filterRating, e) {
-    if (e !== undefined && filterRating !== 0) document.getElementById("dropdownMenuButton1").innerText = e.target.innerText + " IMDB Ratings" 
+    if (e !== undefined && filterRating !== 0) document.getElementById("dropdownMenuButton1").innerText = filterRating + " ✰ IMDB Ratings" 
     if (e !== undefined && filterRating == 0) document.getElementById("dropdownMenuButton1").innerText = "IMDB Ratings" 
     if (this.state.isLoading == true) {
       setTimeout(() => { 
@@ -109,6 +118,13 @@ class Content extends Component {
     // this.setState({isLoading: false})
     this.setState({movieData: []});
     this.setState({scrollHeight: 9999});
+
+    if (this.context.user !== undefined){
+      axios.get(`${process.env.REACT_APP_API_URL}/favorites/addfilters/` + this.context.user.email + '&' + filterRating + '&' + this.state.dateFilter)
+      .then(response => {
+        console.log("FILTERS", response)
+    })
+  }
 
     this.getMovies(0, 1)
   }
@@ -130,7 +146,7 @@ class Content extends Component {
                 console.log("FOUND MATCH 2", movID)
                 this.setState({movieData: compareState2});
     
-                axios.get('http://localhost:9000/favorites/removefavorites/' + this.context.user.email + '&' + movID)
+                axios.get(`${process.env.REACT_APP_API_URL}/favorites/removefavorites/` + this.context.user.email + '&' + movID)
                 .then(response => {
                   console.log(response)
                   this.setState({userFavorites: response.data});
@@ -154,7 +170,7 @@ class Content extends Component {
               console.log("FOUND MATCH", movID)
               this.setState({movieData: compareState2});
   
-              axios.post('http://localhost:9000/favorites/addfavorites/' + this.context.user.email, compareState2[i])
+              axios.post(`${process.env.REACT_APP_API_URL}/favorites/addfavorites/` + this.context.user.email, compareState2[i])
               .then(response => {
                 var compareState = this.state.userFavorites
                 compareState.push(movID)
@@ -169,12 +185,15 @@ class Content extends Component {
           }
         }, 500)
     } else {
-      window.location.href = "/login"
+      // window.location.href = "/login"
     }
     }
+
 
 
   getMovies(numFound, pageNumber) {
+    
+    if (window.location.pathname !== "/toprated") return //prevent infinite loading
 
     if (this.state.isLoading == true && numFound >= 20) {
       // setTimeout(() => {  
@@ -187,16 +206,16 @@ class Content extends Component {
     this.setState({isLoading: true})
     console.log(this.state)
     if (this.context.user !== undefined){
-    axios.get('http://localhost:9000/favorites/getfavorites/' + this.context.user.email)
+    axios.get(`${process.env.REACT_APP_API_URL}/favorites/getfavorites/` + this.context.user.email)
     .then(userFavorities => {
       // console.log("favvs", userFavorities.data);
       this.setState({userFavorites: userFavorities.data});
     })
   }
     // console.log("favvs2", this.state.userFavorites)
-    const v3ApiKey = 'a1714ea534415d9c121d381219e6129d';    
+    const v3ApiKey = process.env.REACT_APP_MOVIEDB
     const v3Client = v3(v3ApiKey);
-    v3Client.movie.popular({
+    v3Client.movie.topRated({
       page: pageNumber
     })
     .then((data) => {
@@ -220,6 +239,7 @@ console.log(this.state.pageNumber, newData)
         data.results = savePageMovies.concat(data.results) 
         this.setState({movieData: data.results});
         console.log("NEXT PAGE", data.results)
+        if ((data.results[20]) && (data.results[0].id == data.results[20].id)) return //prevent infinite loading
       }
 
       
@@ -277,7 +297,7 @@ console.log(this.state.pageNumber, newData)
           "headers":{
           "content-type":"application/octet-stream",
           "x-rapidapi-host":"movie-database-imdb-alternative.p.rapidapi.com",
-          "x-rapidapi-key": "1mAVi8jSwlmsh07ghuCUnNKdyw9ip15YyMJjsng8L9nsfQVPyn"
+          "x-rapidapi-key": process.env.REACT_APP_RAPIDAPI
           },"params":{
           "page":"1",
           "y":v.release_date.substr(5, 8),
@@ -296,7 +316,7 @@ console.log(this.state.pageNumber, newData)
                 "headers":{
                 "content-type":"application/octet-stream",
                 "x-rapidapi-host":"movie-database-imdb-alternative.p.rapidapi.com",
-                "x-rapidapi-key": "1mAVi8jSwlmsh07ghuCUnNKdyw9ip15YyMJjsng8L9nsfQVPyn"
+                "x-rapidapi-key": process.env.REACT_APP_RAPIDAPI
                 },"params":{
                 "i":response.data.Search[0].imdbID,
                 "r":"json"
@@ -435,7 +455,24 @@ console.log(this.state.pageNumber, newData)
   }
 
   componentDidMount () {
-    this.getMovies(0)
+
+    // get filters call here
+    if (this.context.user !== undefined){
+        axios.get(`${process.env.REACT_APP_API_URL}/favorites/getfilters/` + this.context.user.email)
+        .then(response => {
+          console.log("FILTERS", response)
+          if (response.data.filter2) {
+            document.getElementById("dropdownMenuButton2").innerText = response.data.filter2 + " Oldest Year" 
+            this.setState({dateFilter: response.data.filter2});
+          }
+          if (response.data.filter1) this.setRatingFilter(response.data.filter1, null)
+          if (!response.data.filter1 && !response.data.filter2) this.getMovies(0)
+      })
+    }
+
+    if (this.context.user == undefined){
+      this.getMovies(0)
+      }
   }
 
   
@@ -531,7 +568,14 @@ console.log(this.state.pageNumber, newData)
         <h5 className="card-title" style={titleStyle}>{mov.title}</h5>
         <span>{mov.release_date} </span>
         </RouterNavLink>
+        {!this.context.user &&
+        <RouterNavLink to={`/login`} exact className="hide-pointer">
         <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
+        </RouterNavLink>
+        }
+        {this.context.user &&
+        <i className="rate-float" className={mov.fav} style={favStyle} onClick={(e) => this.handleClick(mov.id, e)}/>
+        }
       </div >
       
       </div>
@@ -544,7 +588,7 @@ console.log(this.state.pageNumber, newData)
     return (
       
       <div className="next-steps">
-        <h5 className="pb-3 text-left font-weight-bold flex-row">Trending Movies
+        <h5 className="pb-3 text-left font-weight-bold flex-row">Top Rated Movies
         <button class="btn btn-light btn-sm dropdown-toggle ml-5 rounded" type="button" id="dropdownMenuButton1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         IMDB Ratings
         </button>
@@ -565,18 +609,22 @@ console.log(this.state.pageNumber, newData)
         </button>
         
         <div  class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
-          {this.state.ratingFilter !== 0 && 
-          <a class="dropdown-item" href="#" onClick={(e) => this.setRatingFilter(0, e)}><b>Remove Filter</b></a>
+          {this.state.dateFilter !== 0 && 
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(0, e)}><b>Remove Filter</b></a>
           }
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2020, e)}>2020+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2019, e)}>2019+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2018, e)}>2018+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2017, e)}>2017+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2016, e)}>2016+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2015, e)}>2015+</a>
-          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2010, e)}>2010+</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2020, e)}>2020</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2019, e)}>2019</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2018, e)}>2018</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2017, e)}>2017</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2016, e)}>2016</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2015, e)}>2015</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2010, e)}>2010</a>
+          <a class="dropdown-item" href="#" onClick={(e) => this.setDateFilter(2010, e)}>2000</a>
         </div>
         </div>
+        <RouterNavLink to={`/`} exact className="nav-link-movie">
+        <button class="btn btn-light btn-sm ml-5 rounded" type="button">Trending</button>
+        </RouterNavLink>
         </h5>  
         
 
@@ -599,4 +647,4 @@ console.log(this.state.pageNumber, newData)
   }
 }
 
-export default Content;
+export default ContentTopRated;

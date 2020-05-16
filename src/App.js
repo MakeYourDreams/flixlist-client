@@ -13,6 +13,8 @@ import Favorites from "./components/Favorites";
 import {MovieContent} from './components/MovieContent';
 import {TVContent} from './components/TVContent';
 import ContentTv from './components/ContentTv';
+import ContentTopRatedTv from './components/ContentTopRatedTv';
+import ContentTopRated from './components/ContentTopRated';
 
 import { useAuth0 } from "./react-auth0-spa";
 import history from "./utils/history";
@@ -42,6 +44,8 @@ const App = () => {
           <Switch>
             <Route path="/" exact component={Home} />
             <Route path="/tv" exact component={ContentTv} />
+            <Route path="/toprated" exact component={ContentTopRated} />
+            <Route path="/topratedTV" exact component={ContentTopRatedTv} />
             <Route path="/weekly" exact component={Weekly} />
             <Route path="/movie/:id" exact component={MovieContent} />
             <Route path="/tv/:id" exact component={TVContent} />
