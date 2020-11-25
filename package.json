@@ -20,7 +20,7 @@
     "bootstrap": "^4.4.1",
     "css-loader": "^3.5.3",
     "express": "^4.16.4",
-    "highlight.js": "^9.15.6",
+    "highlight.js": "^10.1.2",
     "jquery": "^3.5.0",
     "lodash.debounce": "^4.0.8",
     "morgan": "^1.9.1",
