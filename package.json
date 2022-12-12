@@ -19,7 +19,7 @@
     "axios": "^0.19.2",
     "bootstrap": "^4.4.1",
     "css-loader": "^3.5.3",
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "highlight.js": "^9.15.6",
     "jquery": "^3.5.0",
     "lodash.debounce": "^4.0.8",
